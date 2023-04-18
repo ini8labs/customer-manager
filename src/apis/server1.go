@@ -26,7 +26,6 @@ func NewServer(addr string, log *logrus.Logger) error {
 	}
 	// API end point
 	r.POST("/api/v1/bet_number", PlaceBet)
-	r.GET("/api/v1/bet_number", Welcome)
 
 	return r.Run(addr)
 
@@ -34,7 +33,7 @@ func NewServer(addr string, log *logrus.Logger) error {
 
 func PlaceBet(c *gin.Context) {
 	var requestData Bet
-	if err := c.ShouldBind(&requestData); err != nil {
+	if err := c.BindJSON(&requestData); err != nil {
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
@@ -42,30 +41,14 @@ func PlaceBet(c *gin.Context) {
 	fmt.Println(requestData.Number)
 	fmt.Println(requestData.Amount)
 
-	c.JSON(http.StatusOK, "all good")
-
-}
-
-var supportedLanguages = []string{"eng", "twi"}
-
-func Welcome(c *gin.Context) {
-	languageSupported := false
-	lang := c.Param("language")
-
-	for _, language := range supportedLanguages {
-		if language == lang {
-			languageSupported = true
-			break
-		}
-	}
-
-	if !languageSupported {
-		errMessage, _ := fmt.Printf("%s is not a supported language", lang)
-		c.JSON(http.StatusNotAcceptable, errMessage)
+	if requestData.Number < 91 {
+		c.JSON(http.StatusBadRequest, "Bad request")
 		return
 	}
 
-	resp := "okok"
+	bets[requestData.Number] = requestData.Amount
+	fmt.Println(bets)
 
-	c.JSON(http.StatusOK, resp)
+	c.JSON(http.StatusOK, "Bet Placed")
+
 }

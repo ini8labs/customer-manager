@@ -7,7 +7,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"Lottery-project/src/apis"
+	"customer-manager/src/apis/"
 )
 
 func main() {
