@@ -22,7 +22,7 @@ func NewServer(addr string, log *logrus.Logger) error {
 	r := gin.Default()
 
 	for i := 1; i < 91; i++ {
-		bets[i] = 12
+		bets[i] = 0
 	}
 	// API end point
 	r.POST("/api/v1/bet_number", PlaceBet)
@@ -41,7 +41,7 @@ func PlaceBet(c *gin.Context) {
 	fmt.Println(requestData.Number)
 	fmt.Println(requestData.Amount)
 
-	if requestData.Number < 91 {
+	if requestData.Number > 91 {
 		c.JSON(http.StatusBadRequest, "Bad request")
 		return
 	}

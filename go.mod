@@ -1,4 +1,4 @@
-module customer-manager/src/apis
+module customer-manager
 
 go 1.20
 

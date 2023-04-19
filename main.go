@@ -7,7 +7,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"customer-manager/src/apis/"
+	"customer-manager/src/apis"
 )
 
 func main() {
