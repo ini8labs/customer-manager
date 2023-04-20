@@ -1,11 +1,16 @@
 package apis
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+)
+
+var (
+	errMinAmount error = errors.New("minimum amount is moire h")
 )
 
 // Struct for Placing betsData
@@ -40,6 +45,10 @@ func PlaceBet(c *gin.Context) {
 		return
 	}
 
+	if err := validateBetPlaceInput(requestData); err != nil {
+		c.JSON(http.StatusBadRequest, err.Error())
+	}
+
 	fmt.Println(c.GetHeader("cookie_1"))
 	userData[c.GetHeader("cookie_1")] = requestData
 
@@ -63,15 +72,12 @@ func BettingDBFunc(r Bet) {
 	fmt.Println(betsData)
 }
 
-// func DelBet(c *gin.Context) {
-// 	var requestData DelStr
-// 	if err := c.ShouldBind(&requestData); err != nil {
-// 		c.JSON(http.StatusBadRequest, "Bad Format")
-// 		return
-// 	}
-
-// 	betsData[requestData.Number] = 0
-// 	c.JSON(http.StatusOK, "Bet Deleted")
-// 	fmt.Println(betsData)
-
-// }
+func validateBetPlaceInput(requestData Bet) error {
+	if len(requestData.Numbers) < 1 {
+		return errMinAmount
+	}
+	if requestData.Amount <= 0 {
+		return fmt.Errorf("amount can not be 0 or negative")
+	}
+	return nil
+}
