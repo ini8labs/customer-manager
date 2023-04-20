@@ -15,8 +15,9 @@ var (
 
 // Struct for Placing betsData
 type Bet struct {
-	Numbers []int `json:"numbers"`
-	Amount  int   `json:"amount"`
+	UserInfo string `json:"userinfo"`
+	Numbers  []int  `json:"numbers"`
+	Amount   int    `json:"amount"`
 }
 
 // Map to store Users DataBase
@@ -36,10 +37,18 @@ func NewServer(addr string, log *logrus.Logger) error {
 
 }
 
-var userData = make(map[string]Bet)
+type mapInput struct {
+	Numbers []int
+	Amount  int
+}
+
+var userData = make(map[string]mapInput)
 
 func PlaceBet(c *gin.Context) {
-	var requestData Bet
+	var (
+		requestData Bet
+		mapData     mapInput
+	)
 	if err := c.ShouldBind(&requestData); err != nil {
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
@@ -47,10 +56,14 @@ func PlaceBet(c *gin.Context) {
 
 	if err := validateBetPlaceInput(requestData); err != nil {
 		c.JSON(http.StatusBadRequest, err.Error())
+		return
 	}
 
-	fmt.Println(c.GetHeader("cookie_1"))
-	userData[c.GetHeader("cookie_1")] = requestData
+	mapData.Numbers, mapData.Amount = requestData.Numbers, requestData.Amount
+
+	userData[requestData.UserInfo] = mapData
+
+	fmt.Println(userData[requestData.UserInfo])
 
 	BettingDBFunc(requestData)
 
