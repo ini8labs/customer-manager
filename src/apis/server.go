@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"encoding/json"
+	"io/ioutil"
+
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -59,6 +62,11 @@ func PlaceBet(c *gin.Context) {
 		return
 	}
 
+	// opening sample.json file
+	file, _ := json.MarshalIndent(requestData, "", " ")
+
+	_ = ioutil.WriteFile("sample.json", file, 0644)
+
 	mapData.Numbers, mapData.Amount = requestData.Numbers, requestData.Amount
 
 	userData[requestData.UserInfo] = mapData
@@ -69,7 +77,7 @@ func PlaceBet(c *gin.Context) {
 
 	// fmt.Println(data["User1"].Numbers)
 
-	c.JSON(http.StatusOK, "Bet Placed")
+	c.JSON(http.StatusOK, "Bet Placed Successfully")
 
 	fmt.Println(userData)
 
