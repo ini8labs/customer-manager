@@ -1,9 +1,154 @@
-{
- "userinfo": "user1",
- "numbers": [
-  1,
-  2,
-  4
- ],
- "amount": 1456456
-}
+[
+ {
+  "userid": "2",
+  "betnumbers": [
+   1,
+   2,
+   4
+  ],
+  "amount": 1000,
+  "eventname": "monday",
+  "eventid": "monday1",
+  "winnumber": [
+   1,
+   2
+  ],
+  "wintype": "D1"
+ },
+ {
+  "userid": "1",
+  "betnumbers": [
+   1,
+   2,
+   4,
+   60,
+   70
+  ],
+  "amount": 1000,
+  "eventname": "tuesday",
+  "eventid": "tuesday1",
+  "winnumber": [
+   1,
+   2,
+   70
+  ],
+  "wintype": "D3"
+ },
+ {
+  "userid": "4",
+  "betnumbers": [
+   1,
+   2,
+   4,
+   60,
+   70
+  ],
+  "amount": 2000,
+  "eventname": "tuesday",
+  "eventid": "tuesday1",
+  "winnumber": [
+   1,
+   2,
+   70
+  ],
+  "wintype": "D3"
+ },
+ {
+  "userid": "4",
+  "betnumbers": [
+   1,
+   2,
+   4,
+   60,
+   70
+  ],
+  "amount": 2000,
+  "eventname": "tuesday",
+  "eventid": "tuesday1",
+  "winnumber": [
+   1,
+   2,
+   70
+  ],
+  "wintype": "D3"
+ },
+ {
+  "userid": "4",
+  "betnumbers": [
+   1,
+   2,
+   4,
+   60,
+   70
+  ],
+  "amount": 2000,
+  "eventname": "tuesday",
+  "eventid": "tuesday1",
+  "winnumber": null,
+  "wintype": "D3"
+ },
+ {
+  "userid": "",
+  "betnumbers": [
+   1,
+   2,
+   4,
+   60,
+   70
+  ],
+  "amount": 2000,
+  "eventname": "tuesday",
+  "eventid": "tuesday1",
+  "winnumber": null,
+  "wintype": "D3"
+ },
+ {
+  "userid": "",
+  "betnumbers": [
+   1,
+   2,
+   4,
+   60,
+   70
+  ],
+  "amount": 0,
+  "eventname": "tuesday",
+  "eventid": "tuesday1",
+  "winnumber": null,
+  "wintype": "D3"
+ },
+ {
+  "userid": "",
+  "betnumbers": [
+   1,
+   2,
+   4,
+   60,
+   70
+  ],
+  "amount": 0,
+  "eventname": "tuesday",
+  "eventid": "",
+  "winnumber": null,
+  "wintype": "D3"
+ },
+ {
+  "userid": "4",
+  "betnumbers": [
+   1,
+   2,
+   4,
+   60,
+   70
+  ],
+  "amount": 2000,
+  "eventname": "tuesday",
+  "eventid": "tuesday1",
+  "winnumber": [
+   1,
+   2,
+   70
+  ],
+  "wintype": "D3"
+ }
+]
