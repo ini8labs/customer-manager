@@ -16,17 +16,6 @@ var (
 	errMinAmount error = errors.New("minimum amount is 1")
 )
 
-// type UserStaking struct {
-// 	UserID     string    `bson:"userid"`
-// 	BetNumbers []int     `bson:"betnumbers"`
-// 	Amount     int       `bson:"amount"`
-// 	EventName  string    `bson:"eventname"`
-// 	EventId    string    `bson:"eventid"`
-// 	WinNumber  []int     `bson:"winnumber"`
-// 	WinType    string    `bson:"wintype"`
-// 	Date       time.Time `bson:"date"`
-// }
-
 type EventDate struct {
 	EventDate primitive.DateTime `json:"date"`
 }
