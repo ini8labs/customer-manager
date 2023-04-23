@@ -2,7 +2,6 @@ package apis
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -33,26 +32,20 @@ func NewServer(addr string, log *logrus.Logger) error {
 	r := gin.Default()
 
 	// API end points
-	r.GET("/api/v1/eventdata", GetAllEvents)
-	//r.POST("/api/v1/userinfo_ID", GetUserInfoByID)
-	r.DELETE("/api/v1/delete", DeleteUserInfoByID)
-	r.POST("/api/v1/eventdata_bydate", GetEventsByDate)
-	r.POST("/api/v1/addnew", PlaceBets)
+	r.GET("/api/v1/event/eventdata", GetAllEvents)
 
-	r.POST("/api/v1/userinfo_ID", GetUserInfoByID)
+	r.POST("/api/v1/bet/new_bet", PlaceBets)
+	r.POST("/api/v1/bet/update", UpdateBets)
+	r.POST("/api/v1/bet/user_bets", UserBets)
+	r.POST("/api/v1/bet/history", EventHistory)
+	r.POST("/api/v1/event/eventdata_bydate", GetEventsByDate)
+	r.POST("/api/v1/user_info/userinfo_ID", GetUserInfoByID)
+
+	r.DELETE("/api/v1/bet/delete", DeleteBets)
+	r.DELETE("/api/v1/user_info/delete", DeleteUserInfoByID)
+
 	return r.Run(addr)
 }
-
-// function for validation
-// func validateBetPlaceInput(requestData Bet) error {
-// 	if len(requestData.Numbers) < 1 {
-// 		return errMinAmount
-// 	}
-// 	if requestData.Amount <= 0 {
-// 		return fmt.Errorf("amount can not be 0 or negative")
-// 	}
-// 	return nil
-// }
 
 // ----User Beting info-----------
 func PlaceBets(c *gin.Context) {
@@ -75,10 +68,108 @@ func PlaceBets(c *gin.Context) {
 	if err := dbClient.AddUserBet(eventParticipantInfo); err != nil {
 		panic(err.Error())
 	}
-	fmt.Println("User Added Successfully")
+
+	c.JSON(http.StatusOK, "Bets Placed Successfully")
 }
 
-// ----Events-----
+func UpdateBets(c *gin.Context) {
+	dbClient, err := lsdb.NewClient()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var eventParticipantInfo lsdb.EventParticipantInfo
+	if err := c.ShouldBind(&eventParticipantInfo); err != nil {
+		c.JSON(http.StatusBadRequest, "Bad Format")
+		return
+	}
+
+	if err := dbClient.OpenConnection(); err != nil {
+		panic(err.Error())
+	}
+	defer dbClient.CloseConnection()
+
+	if err := dbClient.UpdateUserBet(eventParticipantInfo); err != nil {
+		panic(err.Error())
+	}
+
+	c.JSON(http.StatusOK, "Bet Updated Successfully")
+}
+
+func UserBets(c *gin.Context) {
+	dbClient, err := lsdb.NewClient()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var eventParticipantInfo lsdb.EventParticipantInfo
+	if err := c.ShouldBind(&eventParticipantInfo); err != nil {
+		c.JSON(http.StatusBadRequest, "Bad Format")
+		return
+	}
+
+	if err := dbClient.OpenConnection(); err != nil {
+		panic(err.Error())
+	}
+	defer dbClient.CloseConnection()
+
+	resp, err := dbClient.GetUserBets(eventParticipantInfo.EventUID)
+	if err != nil {
+		panic(err.Error())
+	}
+	c.JSON(http.StatusOK, resp)
+}
+
+func DeleteBets(c *gin.Context) {
+	dbClient, err := lsdb.NewClient()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var eventParticipantInfo lsdb.EventParticipantInfo
+	if err := c.ShouldBind(&eventParticipantInfo); err != nil {
+		c.JSON(http.StatusBadRequest, "Bad Format")
+		return
+	}
+
+	if err := dbClient.OpenConnection(); err != nil {
+		panic(err.Error())
+	}
+	defer dbClient.CloseConnection()
+
+	if err := dbClient.DeleteUserBet(eventParticipantInfo.BetUID); err != nil {
+		panic(err.Error())
+	}
+
+	c.JSON(http.StatusOK, "Bet Deleted Successfully")
+}
+
+func EventHistory(c *gin.Context) {
+	dbClient, err := lsdb.NewClient()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var eventParticipantInfo lsdb.EventParticipantInfo
+	if err := c.ShouldBind(&eventParticipantInfo); err != nil {
+		c.JSON(http.StatusBadRequest, "Bad Format")
+		return
+	}
+
+	if err := dbClient.OpenConnection(); err != nil {
+		panic(err.Error())
+	}
+	defer dbClient.CloseConnection()
+
+	resp, err := dbClient.GetParticipantsInfoByEventID(eventParticipantInfo.EventUID)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+// ----User Events info-----
 func GetAllEvents(c *gin.Context) {
 	dbClient, err := lsdb.NewClient()
 	if err != nil {
@@ -150,7 +241,6 @@ func GetUserInfoByID(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// need to delete user info from userinfo as well as user stack
 func DeleteUserInfoByID(c *gin.Context) {
 	var userinfo lsdb.UserInfo
 	dbClient, err := lsdb.NewClient()
