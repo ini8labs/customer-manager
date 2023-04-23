@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ini8labs/lsdb"
@@ -17,16 +16,16 @@ var (
 	errMinAmount error = errors.New("minimum amount is 1")
 )
 
-type UserStaking struct {
-	UserID     string    `json:"userid"`
-	BetNumbers []int     `json:"betnumbers"`
-	Amount     int       `json:"amount"`
-	EventName  string    `json:"eventname"`
-	EventId    string    `json:"eventid"`
-	WinNumber  []int     `json:"winnumber"`
-	WinType    string    `json:"wintype"`
-	Date       time.Time `json:"date"`
-}
+// type UserStaking struct {
+// 	UserID     string    `bson:"userid"`
+// 	BetNumbers []int     `bson:"betnumbers"`
+// 	Amount     int       `bson:"amount"`
+// 	EventName  string    `bson:"eventname"`
+// 	EventId    string    `bson:"eventid"`
+// 	WinNumber  []int     `bson:"winnumber"`
+// 	WinType    string    `bson:"wintype"`
+// 	Date       time.Time `bson:"date"`
+// }
 
 type EventDate struct {
 	EventDate primitive.DateTime `json:"date"`
@@ -49,7 +48,7 @@ func NewServer(addr string, log *logrus.Logger) error {
 	//r.POST("/api/v1/userinfo_ID", GetUserInfoByID)
 	r.DELETE("/api/v1/delete", DeleteUserInfoByID)
 	r.POST("/api/v1/eventdata_bydate", GetEventsByDate)
-	r.POST("/api/v1/addnew", addSomething)
+	r.POST("/api/v1/addnew", PlaceBets)
 
 	r.POST("/api/v1/userinfo_ID", GetUserInfoByID)
 	return r.Run(addr)
@@ -66,14 +65,15 @@ func NewServer(addr string, log *logrus.Logger) error {
 // 	return nil
 // }
 
-func addSomething(c *gin.Context) {
+// ----User Beting info-----------
+func PlaceBets(c *gin.Context) {
 	dbClient, err := lsdb.NewClient()
 	if err != nil {
 		panic(err.Error())
 	}
 
-	var newUserInfo lsdb.UserInfo
-	if err := c.ShouldBind(&newUserInfo); err != nil {
+	var eventParticipantInfo lsdb.EventParticipantInfo
+	if err := c.ShouldBind(&eventParticipantInfo); err != nil {
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
@@ -83,10 +83,9 @@ func addSomething(c *gin.Context) {
 	}
 	defer dbClient.CloseConnection()
 
-	if err := dbClient.AddNewUserInfo(newUserInfo); err != nil {
+	if err := dbClient.AddUserBet(eventParticipantInfo); err != nil {
 		panic(err.Error())
 	}
-
 	fmt.Println("User Added Successfully")
 }
 
