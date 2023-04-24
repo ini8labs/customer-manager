@@ -40,6 +40,7 @@ func NewServer(addr string, log *logrus.Logger) error {
 	r.POST("/api/v1/bet/history", EventHistory)
 	r.POST("/api/v1/event/eventdata_bydate", GetEventsByDate)
 	r.POST("/api/v1/user_info/userinfo_ID", GetUserInfoByID)
+	r.POST("/api/v1/user_info/new_user", NewUserInfo)
 
 	r.DELETE("/api/v1/bet/delete", DeleteBets)
 	r.DELETE("/api/v1/user_info/delete", DeleteUserInfoByID)
@@ -113,7 +114,7 @@ func UserBets(c *gin.Context) {
 	}
 	defer dbClient.CloseConnection()
 
-	resp, err := dbClient.GetUserBets(eventParticipantInfo.EventUID)
+	resp, err := dbClient.GetUserBets(eventParticipantInfo.UserID)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -216,6 +217,56 @@ func GetEventsByDate(c *gin.Context) {
 }
 
 // ----User personal info----------
+func NewUserInfo(c *gin.Context) {
+	var userInfo lsdb.UserInfo
+	dbClient, err := lsdb.NewClient()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	if err := dbClient.OpenConnection(); err != nil {
+		panic(err.Error())
+	}
+	defer dbClient.CloseConnection()
+
+	if err := c.ShouldBind(&userInfo); err != nil {
+		c.JSON(http.StatusBadRequest, "Bad Format")
+		return
+	}
+
+	err1 := dbClient.AddNewUserInfo(userInfo)
+	if err1 != nil {
+		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
+		return
+	}
+	c.JSON(http.StatusOK, "User Info Added Successfully")
+}
+
+func UpdateUserInfo(c *gin.Context) {
+	var userInfo lsdb.UserInfo
+	dbClient, err := lsdb.NewClient()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	if err := dbClient.OpenConnection(); err != nil {
+		panic(err.Error())
+	}
+	defer dbClient.CloseConnection()
+
+	if err := c.ShouldBind(&userInfo); err != nil {
+		c.JSON(http.StatusBadRequest, "Bad Format")
+		return
+	}
+
+	err1 := dbClient.AddNewUserInfo(userInfo)
+	if err1 != nil {
+		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
+		return
+	}
+	c.JSON(http.StatusOK, "User Info Added Successfully")
+}
+
 func GetUserInfoByID(c *gin.Context) {
 	var userid UserID
 	dbClient, err := lsdb.NewClient()
