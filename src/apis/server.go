@@ -41,6 +41,7 @@ func NewServer(addr string, log *logrus.Logger) error {
 	r.POST("/api/v1/event/eventdata_bydate", GetEventsByDate)
 	r.POST("/api/v1/user_info/userinfo_ID", GetUserInfoByID)
 	r.POST("/api/v1/user_info/new_user", NewUserInfo)
+	r.POST("/api/v1/user_info/update_info", UpdateUserInfo)
 
 	r.DELETE("/api/v1/bet/delete", DeleteBets)
 	r.DELETE("/api/v1/user_info/delete", DeleteUserInfoByID)
@@ -242,8 +243,14 @@ func NewUserInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, "User Info Added Successfully")
 }
 
+type UpdateInfoStruct struct {
+	UserID primitive.ObjectID `bson:"userid,omitempty"`
+	Key    string             `bson:"key,omitempty"`
+	Value  string             `bson:"value,omitempty"`
+}
+
 func UpdateUserInfo(c *gin.Context) {
-	var userInfo lsdb.UserInfo
+	var userInfo UpdateInfoStruct
 	dbClient, err := lsdb.NewClient()
 	if err != nil {
 		panic(err.Error())
@@ -259,12 +266,12 @@ func UpdateUserInfo(c *gin.Context) {
 		return
 	}
 
-	err1 := dbClient.AddNewUserInfo(userInfo)
+	err1 := dbClient.UpdateUserInfo(userInfo.UserID, userInfo.Key, userInfo.Value)
 	if err1 != nil {
 		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
 		return
 	}
-	c.JSON(http.StatusOK, "User Info Added Successfully")
+	c.JSON(http.StatusOK, "User Updated Successfully")
 }
 
 func GetUserInfoByID(c *gin.Context) {
