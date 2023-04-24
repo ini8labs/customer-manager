@@ -27,6 +27,12 @@ type UserGovtID struct {
 	GovtID string `json:"govId"`
 }
 
+type UpdateInfoStruct struct {
+	UserID primitive.ObjectID `bson:"userid,omitempty"`
+	Key    string             `bson:"key,omitempty"`
+	Value  string             `bson:"value,omitempty"`
+}
+
 func NewServer(addr string, log *logrus.Logger) error {
 
 	r := gin.Default()
@@ -241,12 +247,6 @@ func NewUserInfo(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, "User Info Added Successfully")
-}
-
-type UpdateInfoStruct struct {
-	UserID primitive.ObjectID `bson:"userid,omitempty"`
-	Key    string             `bson:"key,omitempty"`
-	Value  string             `bson:"value,omitempty"`
 }
 
 func UpdateUserInfo(c *gin.Context) {
