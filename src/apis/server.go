@@ -15,6 +15,12 @@ var (
 	errMinAmount error = errors.New("minimum amount is 1")
 )
 
+type Server struct {
+	*logrus.Logger
+	*lsdb.Client
+	Addr string
+}
+
 type EventDate struct {
 	EventDate primitive.DateTime `json:"date"`
 }
@@ -33,143 +39,91 @@ type UpdateInfoStruct struct {
 	Value  string             `bson:"value,omitempty"`
 }
 
-func NewServer(addr string, log *logrus.Logger) error {
+func NewServer(server Server) error {
 
 	r := gin.Default()
 
 	// API end points
-	r.GET("/api/v1/event/eventdata", GetAllEvents)
+	r.POST("/api/v1/bet?new_bet", server.PlaceBets)
+	r.POST("/api/v1/bet/update", server.UpdateBets)
+	r.POST("/api/v1/bet/user_bets", server.UserBets)
+	r.DELETE("/api/v1/bet/delete", server.DeleteBets)
+	r.POST("/api/v1/bet/history", server.EventHistory)
+	r.POST("/api/v1/user_info/userinfo_ID", server.GetUserInfoByID)
+	r.POST("/api/v1/user_info/new_user", server.NewUserInfo)
+	r.POST("/api/v1/user_info/update_info", server.UpdateUserInfo)
+	r.DELETE("/api/v1/user_info/delete", server.DeleteUserInfoByID)
+	r.GET("/api/v1/event/eventdata", server.GetAllEvents)
+	// r.POST("/api/v1/event/eventdata_bydate", GetEventsByDate
 
-	r.POST("/api/v1/bet/new_bet", PlaceBets)
-	r.POST("/api/v1/bet/update", UpdateBets)
-	r.POST("/api/v1/bet/user_bets", UserBets)
-	r.POST("/api/v1/bet/history", EventHistory)
-	r.POST("/api/v1/event/eventdata_bydate", GetEventsByDate)
-	r.POST("/api/v1/user_info/userinfo_ID", GetUserInfoByID)
-	r.POST("/api/v1/user_info/new_user", NewUserInfo)
-	r.POST("/api/v1/user_info/update_info", UpdateUserInfo)
-
-	r.DELETE("/api/v1/bet/delete", DeleteBets)
-	r.DELETE("/api/v1/user_info/delete", DeleteUserInfoByID)
-
-	return r.Run(addr)
+	return r.Run(server.Addr)
 }
 
 // ----User Beting info-----------
-func PlaceBets(c *gin.Context) {
-	dbClient, err := lsdb.NewClient()
-	if err != nil {
-		panic(err.Error())
-	}
-
+func (s Server) PlaceBets(c *gin.Context) {
 	var eventParticipantInfo lsdb.EventParticipantInfo
 	if err := c.ShouldBind(&eventParticipantInfo); err != nil {
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 
-	if err := dbClient.OpenConnection(); err != nil {
-		panic(err.Error())
-	}
-	defer dbClient.CloseConnection()
-
-	if err := dbClient.AddUserBet(eventParticipantInfo); err != nil {
+	if err := s.Client.AddUserBet(eventParticipantInfo); err != nil {
 		panic(err.Error())
 	}
 
 	c.JSON(http.StatusOK, "Bets Placed Successfully")
 }
 
-func UpdateBets(c *gin.Context) {
-	dbClient, err := lsdb.NewClient()
-	if err != nil {
-		panic(err.Error())
-	}
-
+func (s Server) UpdateBets(c *gin.Context) {
 	var eventParticipantInfo lsdb.EventParticipantInfo
 	if err := c.ShouldBind(&eventParticipantInfo); err != nil {
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 
-	if err := dbClient.OpenConnection(); err != nil {
-		panic(err.Error())
-	}
-	defer dbClient.CloseConnection()
-
-	if err := dbClient.UpdateUserBet(eventParticipantInfo); err != nil {
+	if err := s.Client.UpdateUserBet(eventParticipantInfo); err != nil {
 		panic(err.Error())
 	}
 
 	c.JSON(http.StatusOK, "Bet Updated Successfully")
 }
 
-func UserBets(c *gin.Context) {
-	dbClient, err := lsdb.NewClient()
-	if err != nil {
-		panic(err.Error())
-	}
-
+func (s Server) UserBets(c *gin.Context) {
 	var eventParticipantInfo lsdb.EventParticipantInfo
 	if err := c.ShouldBind(&eventParticipantInfo); err != nil {
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 
-	if err := dbClient.OpenConnection(); err != nil {
-		panic(err.Error())
-	}
-	defer dbClient.CloseConnection()
-
-	resp, err := dbClient.GetUserBets(eventParticipantInfo.UserID)
+	resp, err := s.Client.GetUserBets(eventParticipantInfo.UserID)
 	if err != nil {
 		panic(err.Error())
 	}
 	c.JSON(http.StatusOK, resp)
 }
 
-func DeleteBets(c *gin.Context) {
-	dbClient, err := lsdb.NewClient()
-	if err != nil {
-		panic(err.Error())
-	}
-
+func (s Server) DeleteBets(c *gin.Context) {
 	var eventParticipantInfo lsdb.EventParticipantInfo
 	if err := c.ShouldBind(&eventParticipantInfo); err != nil {
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 
-	if err := dbClient.OpenConnection(); err != nil {
-		panic(err.Error())
-	}
-	defer dbClient.CloseConnection()
-
-	if err := dbClient.DeleteUserBet(eventParticipantInfo.BetUID); err != nil {
+	if err := s.Client.DeleteUserBet(eventParticipantInfo.BetUID); err != nil {
 		panic(err.Error())
 	}
 
 	c.JSON(http.StatusOK, "Bet Deleted Successfully")
 }
 
-func EventHistory(c *gin.Context) {
-	dbClient, err := lsdb.NewClient()
-	if err != nil {
-		panic(err.Error())
-	}
-
+func (s Server) EventHistory(c *gin.Context) {
 	var eventParticipantInfo lsdb.EventParticipantInfo
 	if err := c.ShouldBind(&eventParticipantInfo); err != nil {
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 
-	if err := dbClient.OpenConnection(); err != nil {
-		panic(err.Error())
-	}
-	defer dbClient.CloseConnection()
-
-	resp, err := dbClient.GetParticipantsInfoByEventID(eventParticipantInfo.EventUID)
+	resp, err := s.Client.GetParticipantsInfoByEventID(eventParticipantInfo.EventUID)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -178,18 +132,9 @@ func EventHistory(c *gin.Context) {
 }
 
 // ----User Events info-----
-func GetAllEvents(c *gin.Context) {
-	dbClient, err := lsdb.NewClient()
-	if err != nil {
-		panic(err.Error())
-	}
+func (s Server) GetAllEvents(c *gin.Context) {
 
-	if err := dbClient.OpenConnection(); err != nil {
-		panic(err.Error())
-	}
-	defer dbClient.CloseConnection()
-
-	resp, err := dbClient.GetAllEvents()
+	resp, err := s.Client.GetAllEvents()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
 		return
@@ -224,24 +169,14 @@ func GetEventsByDate(c *gin.Context) {
 }
 
 // ----User personal info----------
-func NewUserInfo(c *gin.Context) {
+func (s Server) NewUserInfo(c *gin.Context) {
 	var userInfo lsdb.UserInfo
-	dbClient, err := lsdb.NewClient()
-	if err != nil {
-		panic(err.Error())
-	}
-
-	if err := dbClient.OpenConnection(); err != nil {
-		panic(err.Error())
-	}
-	defer dbClient.CloseConnection()
-
 	if err := c.ShouldBind(&userInfo); err != nil {
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 
-	err1 := dbClient.AddNewUserInfo(userInfo)
+	err1 := s.Client.AddNewUserInfo(userInfo)
 	if err1 != nil {
 		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
 		return
@@ -249,24 +184,14 @@ func NewUserInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, "User Info Added Successfully")
 }
 
-func UpdateUserInfo(c *gin.Context) {
+func (s Server) UpdateUserInfo(c *gin.Context) {
 	var userInfo UpdateInfoStruct
-	dbClient, err := lsdb.NewClient()
-	if err != nil {
-		panic(err.Error())
-	}
-
-	if err := dbClient.OpenConnection(); err != nil {
-		panic(err.Error())
-	}
-	defer dbClient.CloseConnection()
-
 	if err := c.ShouldBind(&userInfo); err != nil {
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 
-	err1 := dbClient.UpdateUserInfo(userInfo.UserID, userInfo.Key, userInfo.Value)
+	err1 := s.Client.UpdateUserInfo(userInfo.UserID, userInfo.Key, userInfo.Value)
 	if err1 != nil {
 		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
 		return
@@ -274,24 +199,14 @@ func UpdateUserInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, "User Updated Successfully")
 }
 
-func GetUserInfoByID(c *gin.Context) {
+func (s Server) GetUserInfoByID(c *gin.Context) {
 	var userid UserID
-	dbClient, err := lsdb.NewClient()
-	if err != nil {
-		panic(err.Error())
-	}
-
-	if err := dbClient.OpenConnection(); err != nil {
-		panic(err.Error())
-	}
-	defer dbClient.CloseConnection()
-
 	if err := c.ShouldBind(&userid); err != nil {
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 
-	resp, err := dbClient.GetUserInfoByID(userid.UID)
+	resp, err := s.Client.GetUserInfoByID(userid.UID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
 		return
@@ -299,24 +214,15 @@ func GetUserInfoByID(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func DeleteUserInfoByID(c *gin.Context) {
+func (s Server) DeleteUserInfoByID(c *gin.Context) {
 	var userinfo lsdb.UserInfo
-	dbClient, err := lsdb.NewClient()
-	if err != nil {
-		panic(err.Error())
-	}
-
-	if err := dbClient.OpenConnection(); err != nil {
-		panic(err.Error())
-	}
-	defer dbClient.CloseConnection()
 
 	if err := c.ShouldBind(&userinfo); err != nil {
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 
-	err1 := dbClient.DeleteUserInfo(userinfo)
+	err1 := s.Client.DeleteUserInfo(userinfo)
 	if err1 != nil {
 		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
 		return
