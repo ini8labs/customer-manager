@@ -44,7 +44,7 @@ func NewServer(server Server) error {
 	r := gin.Default()
 
 	// API end points
-	r.POST("/api/v1/bet?new_bet", server.PlaceBets)
+	r.POST("/api/v1/bet/new_bet", server.PlaceBets)
 	r.POST("/api/v1/bet/update", server.UpdateBets)
 	r.POST("/api/v1/bet/user_bets", server.UserBets)
 	r.DELETE("/api/v1/bet/delete", server.DeleteBets)
@@ -68,7 +68,7 @@ func (s Server) PlaceBets(c *gin.Context) {
 	}
 
 	if err := s.Client.AddUserBet(eventParticipantInfo); err != nil {
-		panic(err.Error())
+		s.Logger.Error(err.Error())
 	}
 
 	c.JSON(http.StatusOK, "Bets Placed Successfully")
