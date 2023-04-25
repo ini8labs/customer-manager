@@ -3,6 +3,7 @@ package apis
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ini8labs/lsdb"
@@ -44,13 +45,13 @@ func NewServer(server Server) error {
 	r := gin.Default()
 
 	// API end points
-	r.POST("/api/v1/bet/new_bet", server.PlaceBets)
+	r.GET("/api/v1/bet/new_bet", server.PlaceBets1)
 	r.POST("/api/v1/bet/update", server.UpdateBets)
 	r.POST("/api/v1/bet/user_bets", server.UserBets)
 	r.DELETE("/api/v1/bet/delete", server.DeleteBets)
 	r.POST("/api/v1/bet/history", server.EventHistory)
 	r.POST("/api/v1/user_info/userinfo_ID", server.GetUserInfoByID)
-	r.POST("/api/v1/user_info/new_user", server.NewUserInfo)
+	r.GET("/api/v1/user_info/new_user", server.NewUserInfo)
 	r.POST("/api/v1/user_info/update_info", server.UpdateUserInfo)
 	r.DELETE("/api/v1/user_info/delete", server.DeleteUserInfoByID)
 	r.GET("/api/v1/event/eventdata", server.GetAllEvents)
@@ -60,7 +61,7 @@ func NewServer(server Server) error {
 }
 
 // ----User Beting info-----------
-func (s Server) PlaceBets(c *gin.Context) {
+func (s Server) PlaceBets1(c *gin.Context) {
 	var eventParticipantInfo lsdb.EventParticipantInfo
 	if err := c.ShouldBind(&eventParticipantInfo); err != nil {
 		c.JSON(http.StatusBadRequest, "Bad Format")
@@ -170,18 +171,37 @@ func GetEventsByDate(c *gin.Context) {
 
 // ----User personal info----------
 func (s Server) NewUserInfo(c *gin.Context) {
-	var userInfo lsdb.UserInfo
-	if err := c.ShouldBind(&userInfo); err != nil {
+	name, exists1 := c.GetQuery("name")
+	phone, exists2 := c.GetQuery("phone")
+	govID, exists3 := c.GetQuery("govid")
+	eMail, exists4 := c.GetQuery("email")
+
+	// check for no missing fields
+	if !exists1 || !exists2 || !exists3 || !exists4 {
+		s.Logger.Error("Field empty")
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 
-	err1 := s.Client.AddNewUserInfo(userInfo)
-	if err1 != nil {
-		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
+	phone_int64, _ := strconv.ParseInt(phone, 10, 64)
+
+	UserInfo1 := lsdb.UserInfo{
+		Name:  name,
+		Phone: phone_int64,
+		GovID: govID,
+		EMail: eMail,
+	}
+
+	s.Logger.Println("after creating a struct ")
+	s.Logger.Println(UserInfo1.Phone)
+	err := s.Client.AddNewUserInfo(UserInfo1)
+	if err != nil {
+		s.Logger.Error("Internal server Error")
+		c.JSON(http.StatusInternalServerError, "Something is wrong with the server")
 		return
 	}
 	c.JSON(http.StatusOK, "User Info Added Successfully")
+	s.Logger.Info("Create operation performed")
 }
 
 func (s Server) UpdateUserInfo(c *gin.Context) {
