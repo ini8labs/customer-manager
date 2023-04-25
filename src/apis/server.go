@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ini8labs/lsdb"
@@ -13,7 +14,8 @@ import (
 )
 
 var (
-	errMinAmount error = errors.New("minimum amount is 1")
+	errMinAmount error = errors.New("Minimum  number that can be selected is 1")
+	errMaxAmount error = errors.New("Maximum numbers that can be selected are  5")
 )
 
 type Server struct {
@@ -45,7 +47,7 @@ func NewServer(server Server) error {
 	r := gin.Default()
 
 	// API end points
-	r.GET("/api/v1/bet/new_bet", server.PlaceBets1)
+	r.GET("/api/v1/bet/new_bet", server.PlaceBets)
 	r.POST("/api/v1/bet/update", server.UpdateBets)
 	r.POST("/api/v1/bet/user_bets", server.UserBets)
 	r.DELETE("/api/v1/bet/delete", server.DeleteBets)
@@ -61,11 +63,36 @@ func NewServer(server Server) error {
 }
 
 // ----User Beting info-----------
-func (s Server) PlaceBets1(c *gin.Context) {
-	var eventParticipantInfo lsdb.EventParticipantInfo
-	if err := c.ShouldBind(&eventParticipantInfo); err != nil {
+func (s Server) PlaceBets(c *gin.Context) {
+	eventUID, exists1 := c.GetQuery("eventuid")
+	userID, exists2 := c.GetQuery("userid")
+	betNumbers, exists3 := c.GetQuery("betnumbers")
+	Amount, exists4 := c.GetQuery("amount")
+
+	// check for no missing fields
+	if !exists1 || !exists2 || !exists3 || !exists4 {
+		s.Logger.Error("Field empty")
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
+	}
+
+	eventUIDConv, _ := primitive.ObjectIDFromHex(eventUID)
+	userIDConv, _ := primitive.ObjectIDFromHex(userID)
+	amount, _ := strconv.Atoi(Amount)
+	betNumbersConv, err := s.Convert(betNumbers)
+	if err != nil {
+		// c.JSON{http.StatusBadRequest, "Bad request"}
+		s.Logger.Error("Bad request")
+		return
+	}
+
+	eventParticipantInfo := lsdb.EventParticipantInfo{
+		EventUID: eventUIDConv,
+		ParticipantInfo: lsdb.ParticipantInfo{
+			UserID:     userIDConv,
+			BetNumbers: betNumbersConv,
+			Amount:     amount,
+		},
 	}
 
 	if err := s.Client.AddUserBet(eventParticipantInfo); err != nil {
@@ -73,6 +100,30 @@ func (s Server) PlaceBets1(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, "Bets Placed Successfully")
+}
+
+func (s Server) Convert(str string) ([]int, error) {
+	split := strings.Split(str, ",")
+	strToInt := []int{}
+	if len(split) < 0 {
+		s.Logger.Error(errMinAmount)
+		return nil, errMinAmount
+	}
+
+	if len(split) > 5 {
+		s.Logger.Error(errMaxAmount)
+		return nil, errMaxAmount
+	}
+
+	for _, i := range split {
+		j, err := strconv.Atoi(i)
+		if err != nil {
+			s.Logger.Error("Betting numbers not correct")
+		}
+
+		strToInt = append(strToInt, j)
+	}
+	return strToInt, nil
 }
 
 func (s Server) UpdateBets(c *gin.Context) {
@@ -137,7 +188,8 @@ func (s Server) GetAllEvents(c *gin.Context) {
 
 	resp, err := s.Client.GetAllEvents()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
+		s.Logger.Error("Internal server error")
+		c.JSON(http.StatusInternalServerError, "Something is wrong with the server")
 		return
 	}
 
@@ -182,12 +234,12 @@ func (s Server) NewUserInfo(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
-
-	phone_int64, _ := strconv.ParseInt(phone, 10, 64)
+	// convert phone from string to int64
+	phoneInt64, _ := strconv.ParseInt(phone, 10, 64)
 
 	userInfo := lsdb.UserInfo{
 		Name:  name,
-		Phone: phone_int64,
+		Phone: phoneInt64,
 		GovID: govID,
 		EMail: eMail,
 	}
