@@ -14,8 +14,10 @@ import (
 )
 
 var (
-	errMinAmount error = errors.New("Minimum  number that can be selected is 1")
-	errMaxAmount error = errors.New("Maximum numbers that can be selected are  5")
+	errMinNumbers       error = errors.New("minimum  number that can be selected is 1")
+	errMaxNumbers       error = errors.New("maximum numbers that can be selected are  5")
+	errMinAmount        error = errors.New("minimum amount that can be placed is 1")
+	errNumberNotAllowed error = errors.New("bet numbers should be between 1 and 90")
 )
 
 type Server struct {
@@ -79,10 +81,16 @@ func (s Server) PlaceBets(c *gin.Context) {
 	eventUIDConv, _ := primitive.ObjectIDFromHex(eventUID)
 	userIDConv, _ := primitive.ObjectIDFromHex(userID)
 	amount, _ := strconv.Atoi(Amount)
+	if amount < 1 {
+		s.Logger.Error(errMinAmount)
+		c.JSON(http.StatusBadRequest, "Bad Format")
+		return
+	}
+
 	betNumbersConv, err := s.Convert(betNumbers)
 	if err != nil {
-		// c.JSON{http.StatusBadRequest, "Bad request"}
-		s.Logger.Error("Bad request")
+		s.Logger.Error("Bet numbers no proper")
+		c.JSON(http.StatusBadRequest, "Bad format")
 		return
 	}
 
@@ -105,20 +113,22 @@ func (s Server) PlaceBets(c *gin.Context) {
 func (s Server) Convert(str string) ([]int, error) {
 	split := strings.Split(str, ",")
 	strToInt := []int{}
-	if len(split) < 0 {
-		s.Logger.Error(errMinAmount)
-		return nil, errMinAmount
+
+	if len(split) < 1 {
+		s.Logger.Error(errMinNumbers)
+		return nil, errMinNumbers
 	}
 
 	if len(split) > 5 {
-		s.Logger.Error(errMaxAmount)
-		return nil, errMaxAmount
+		s.Logger.Error(errMaxNumbers)
+		return nil, errMaxNumbers
 	}
 
 	for _, i := range split {
 		j, err := strconv.Atoi(i)
-		if err != nil {
+		if err != nil || j < 1 || j > 90 {
 			s.Logger.Error("Betting numbers not correct")
+			return nil, errNumberNotAllowed
 		}
 
 		strToInt = append(strToInt, j)
