@@ -185,7 +185,7 @@ func (s Server) NewUserInfo(c *gin.Context) {
 
 	phone_int64, _ := strconv.ParseInt(phone, 10, 64)
 
-	UserInfo1 := lsdb.UserInfo{
+	userInfo := lsdb.UserInfo{
 		Name:  name,
 		Phone: phone_int64,
 		GovID: govID,
@@ -193,8 +193,8 @@ func (s Server) NewUserInfo(c *gin.Context) {
 	}
 
 	s.Logger.Println("after creating a struct ")
-	s.Logger.Println(UserInfo1.Phone)
-	err := s.Client.AddNewUserInfo(UserInfo1)
+	s.Logger.Println(userInfo.Phone)
+	err := s.Client.AddNewUserInfo(userInfo)
 	if err != nil {
 		s.Logger.Error("Internal server Error")
 		c.JSON(http.StatusInternalServerError, "Something is wrong with the server")
