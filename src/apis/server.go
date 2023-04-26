@@ -14,10 +14,12 @@ import (
 )
 
 var (
+	errIncorrectField   error = errors.New("incorrect field or fields")
 	errMinNumbers       error = errors.New("minimum  number that can be selected is 1")
 	errMaxNumbers       error = errors.New("maximum numbers that can be selected are  5")
 	errMinAmount        error = errors.New("minimum amount that can be placed is 1")
 	errNumberNotAllowed error = errors.New("bet numbers should be between 1 and 90")
+	errIncorrectPhoneNo error = errors.New("phone number is entered incorrectly")
 )
 
 type Server struct {
@@ -38,10 +40,18 @@ type UserGovtID struct {
 	GovtID string `json:"govId"`
 }
 
-type UpdateInfoStruct struct {
-	UserID primitive.ObjectID `bson:"userid,omitempty"`
-	Key    string             `bson:"key,omitempty"`
-	Value  string             `bson:"value,omitempty"`
+type UserInfoStruct struct {
+	UID   primitive.ObjectID `bson:"_id,omitempty"`
+	Name  string             `bson:"name,omitempty"`
+	Phone int64              `bson:"phone,omitempty"`
+	EMail string             `bson:"e_mail,omitempty"`
+}
+
+type EventsInfo struct {
+	EventUID  primitive.ObjectID `bson:"_id,omitempty"`
+	EventDate primitive.DateTime `bson:"event_date,omitempty"`
+	EventName string             `bson:"name,omitempty"`
+	EventType string             `bson:"event_type,omitempty"`
 }
 
 func NewServer(server Server) error {
@@ -49,14 +59,14 @@ func NewServer(server Server) error {
 	r := gin.Default()
 
 	// API end points
-	r.GET("/api/v1/bet/new_bet", server.PlaceBets)
-	r.POST("/api/v1/bet/update", server.UpdateBets)
-	r.POST("/api/v1/bet/user_bets", server.UserBets)
-	r.DELETE("/api/v1/bet/delete", server.DeleteBets)
-	r.POST("/api/v1/bet/history", server.EventHistory)
-	r.POST("/api/v1/user_info/userinfo_ID", server.GetUserInfoByID)
-	r.GET("/api/v1/user_info/new_user", server.NewUserInfo)
-	r.POST("/api/v1/user_info/update_info", server.UpdateUserInfo)
+	r.POST("/api/v1/bet/new_bet", server.PlaceBets)                // done,
+	r.PUT("/api/v1/bet/update", server.UpdateBets)                 // validation
+	r.GET("/api/v1/bet/user_bets", server.UserBets)                // required info
+	r.DELETE("/api/v1/bet/delete", server.DeleteBets)              // done
+	r.GET("/api/v1/bet/history", server.EventHistory)              //done
+	r.GET("/api/v1/user_info/userinfo_ID", server.GetUserInfoByID) // done
+	r.POST("/api/v1/user_info/new_user", server.NewUserInfo)       // needs to add validation
+	//r.PUT("/api/v1/user_info/update_info", server.UpdateUserInfo)
 	r.DELETE("/api/v1/user_info/delete", server.DeleteUserInfoByID)
 	r.GET("/api/v1/event/eventdata", server.GetAllEvents)
 	// r.POST("/api/v1/event/eventdata_bydate", GetEventsByDate
@@ -105,6 +115,8 @@ func (s Server) PlaceBets(c *gin.Context) {
 
 	if err := s.Client.AddUserBet(eventParticipantInfo); err != nil {
 		s.Logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
 	}
 
 	c.JSON(http.StatusOK, "Bets Placed Successfully")
@@ -127,7 +139,7 @@ func (s Server) Convert(str string) ([]int, error) {
 	for _, i := range split {
 		j, err := strconv.Atoi(i)
 		if err != nil || j < 1 || j > 90 {
-			s.Logger.Error("Betting numbers not correct")
+			s.Logger.Error(errNumberNotAllowed)
 			return nil, errNumberNotAllowed
 		}
 
@@ -137,59 +149,116 @@ func (s Server) Convert(str string) ([]int, error) {
 }
 
 func (s Server) UpdateBets(c *gin.Context) {
-	var eventParticipantInfo lsdb.EventParticipantInfo
-	if err := c.ShouldBind(&eventParticipantInfo); err != nil {
+	betUID, exists1 := c.GetQuery("betuid")
+	betNumbers, exists2 := c.GetQuery("betnumbers")
+	Amount, exists3 := c.GetQuery("amount")
+
+	if !exists1 || !exists2 || !exists3 {
+		s.Logger.Error(errIncorrectField)
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
+	}
+
+	bettUIDConv, _ := primitive.ObjectIDFromHex(betUID)
+	betNumbersConv, err := s.Convert(betNumbers)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, "Bad format")
+		return
+	}
+	amount, _ := strconv.Atoi(Amount)
+	if amount < 1 {
+		s.Logger.Error(errMinAmount)
+		c.JSON(http.StatusBadRequest, "Bad Format")
+		return
+	}
+
+	eventParticipantInfo := lsdb.EventParticipantInfo{
+		BetUID: bettUIDConv,
+		ParticipantInfo: lsdb.ParticipantInfo{
+			BetNumbers: betNumbersConv,
+			Amount:     amount,
+		},
 	}
 
 	if err := s.Client.UpdateUserBet(eventParticipantInfo); err != nil {
-		panic(err.Error())
+		s.Logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
 	}
 
-	c.JSON(http.StatusOK, "Bet Updated Successfully")
+	c.JSON(http.StatusCreated, "Bet Updated Successfully")
 }
 
 func (s Server) UserBets(c *gin.Context) {
-	var eventParticipantInfo lsdb.EventParticipantInfo
-	if err := c.ShouldBind(&eventParticipantInfo); err != nil {
+	userID, exists1 := c.GetQuery("userid")
+	if !exists1 {
+		s.Logger.Error(errIncorrectField)
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 
-	resp, err := s.Client.GetUserBets(eventParticipantInfo.UserID)
+	userIDConv, _ := primitive.ObjectIDFromHex(userID)
+	resp, err := s.Client.GetUserBets(userIDConv)
 	if err != nil {
-		panic(err.Error())
+		s.Logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if len(resp) < 1 {
+		s.Logger.Error("empty response")
+		c.JSON(http.StatusNotFound, "Not found")
+		return
 	}
 	c.JSON(http.StatusOK, resp)
 }
 
 func (s Server) DeleteBets(c *gin.Context) {
-	var eventParticipantInfo lsdb.EventParticipantInfo
-	if err := c.ShouldBind(&eventParticipantInfo); err != nil {
+	betUID, exists1 := c.GetQuery("betuid")
+	if !exists1 {
+		s.Logger.Error(errIncorrectField)
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 
-	if err := s.Client.DeleteUserBet(eventParticipantInfo.BetUID); err != nil {
-		panic(err.Error())
+	bettUIDConv, err := primitive.ObjectIDFromHex(betUID)
+	if err != nil {
+		s.Logger.Error("Bad BetUID")
+		c.JSON(http.StatusBadRequest, "Bad format")
+		return
+	}
+
+	if err := s.Client.DeleteUserBet(bettUIDConv); err != nil {
+		s.Logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
 	}
 
 	c.JSON(http.StatusOK, "Bet Deleted Successfully")
 }
 
 func (s Server) EventHistory(c *gin.Context) {
-	var eventParticipantInfo lsdb.EventParticipantInfo
-	if err := c.ShouldBind(&eventParticipantInfo); err != nil {
+	eventUID, exists1 := c.GetQuery("eventuid")
+	if !exists1 {
+		s.Logger.Error(errIncorrectField)
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 
-	resp, err := s.Client.GetParticipantsInfoByEventID(eventParticipantInfo.EventUID)
-	if err != nil {
-		panic(err.Error())
+	eventUIDConv, _ := primitive.ObjectIDFromHex(eventUID)
+
+	resp, err := s.Client.GetParticipantsInfoByEventID(eventUIDConv)
+	if err != nil || len(resp) < 1 {
+		s.Logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
 	}
 
+	if len(resp) < 1 {
+		s.Logger.Error("empty response")
+		c.JSON(http.StatusNotFound, err.Error())
+		return
+	}
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -198,32 +267,31 @@ func (s Server) GetAllEvents(c *gin.Context) {
 
 	resp, err := s.Client.GetAllEvents()
 	if err != nil {
-		s.Logger.Error("Internal server error")
-		c.JSON(http.StatusInternalServerError, "Something is wrong with the server")
+		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
+		logrus.Infoln(err)
 		return
 	}
 
-	c.JSON(http.StatusOK, resp)
+	var eventinfo []EventsInfo
+
+	for i := 0; i < len(resp); i++ {
+		eventinfo[i].EventUID = resp[i].EventUID
+		eventinfo[i].EventDate = resp[i].EventDate
+		eventinfo[i].EventName = resp[i].Name
+		eventinfo[i].EventType = resp[i].EventType
+
+	}
+	c.JSON(http.StatusOK, eventinfo)
 }
 
-func GetEventsByDate(c *gin.Context) {
+func (s Server) GetEventsByDate(c *gin.Context) {
 	var eventdate EventDate
-	dbClient, err := lsdb.NewClient()
-	if err != nil {
-		panic(err.Error())
-	}
-
-	if err := dbClient.OpenConnection(); err != nil {
-		panic(err.Error())
-	}
-	defer dbClient.CloseConnection()
-
 	if err := c.ShouldBind(&eventdate); err != nil {
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 
-	resp, err := dbClient.GetEventsByDate(eventdate.EventDate)
+	resp, err := s.Client.GetEventsByDate(eventdate.EventDate)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
 		return
@@ -240,12 +308,17 @@ func (s Server) NewUserInfo(c *gin.Context) {
 
 	// check for no missing fields
 	if !exists1 || !exists2 || !exists3 || !exists4 {
-		s.Logger.Error("Field empty")
+		s.Logger.Error(errIncorrectField)
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 	// convert phone from string to int64
-	phoneInt64, _ := strconv.ParseInt(phone, 10, 64)
+	phoneInt64, err := strconv.ParseInt(phone, 10, 64)
+	if err != nil {
+		s.Logger.Error(errIncorrectPhoneNo)
+		c.JSON(http.StatusBadRequest, "Bad Format")
+		return
+	}
 
 	userInfo := lsdb.UserInfo{
 		Name:  name,
@@ -254,10 +327,8 @@ func (s Server) NewUserInfo(c *gin.Context) {
 		EMail: eMail,
 	}
 
-	s.Logger.Println("after creating a struct ")
-	s.Logger.Println(userInfo.Phone)
-	err := s.Client.AddNewUserInfo(userInfo)
-	if err != nil {
+	err1 := s.Client.AddNewUserInfo(userInfo)
+	if err1 != nil {
 		s.Logger.Error("Internal server Error")
 		c.JSON(http.StatusInternalServerError, "Something is wrong with the server")
 		return
@@ -275,6 +346,7 @@ func (s Server) UpdateUserInfo(c *gin.Context) {
 
 	err1 := s.Client.UpdateUserInfo(userInfo.UserID, userInfo.Key, userInfo.Value)
 	if err1 != nil {
+		s.Logger.Error("internal server error")
 		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
 		return
 	}
@@ -282,18 +354,36 @@ func (s Server) UpdateUserInfo(c *gin.Context) {
 }
 
 func (s Server) GetUserInfoByID(c *gin.Context) {
-	var userid UserID
-	if err := c.ShouldBind(&userid); err != nil {
+	userID, exists1 := c.GetQuery("userid")
+	if !exists1 {
+		s.Logger.Error(errIncorrectField)
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 
-	resp, err := s.Client.GetUserInfoByID(userid.UID)
+	userIDConv, _ := primitive.ObjectIDFromHex(userID)
+
+	resp, err := s.Client.GetUserInfoByID(userIDConv)
 	if err != nil {
+		s.Logger.Error("internal server error")
 		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
 		return
 	}
-	c.JSON(http.StatusOK, resp)
+
+	if (lsdb.UserInfo{} == *resp) {
+		s.Logger.Error("empty response")
+		c.JSON(http.StatusNotFound, "Not found")
+		return
+	}
+
+	userInfoStruct := UserInfoStruct{
+		UID:   resp.UID,
+		Name:  resp.Name,
+		Phone: resp.Phone,
+		EMail: resp.EMail,
+	}
+
+	c.JSON(http.StatusOK, userInfoStruct)
 }
 
 func (s Server) DeleteUserInfoByID(c *gin.Context) {
