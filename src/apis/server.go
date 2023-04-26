@@ -59,14 +59,14 @@ func NewServer(server Server) error {
 	r := gin.Default()
 
 	// API end points
-	r.POST("/api/v1/bet/new_bet", server.PlaceBets)                // done,
-	r.PUT("/api/v1/bet/update", server.UpdateBets)                 // validation
-	r.GET("/api/v1/bet/user_bets", server.UserBets)                // required info
-	r.DELETE("/api/v1/bet/delete", server.DeleteBets)              // done
-	r.GET("/api/v1/bet/history", server.EventHistory)              //done
-	r.GET("/api/v1/user_info/userinfo_ID", server.GetUserInfoByID) // done
-	r.POST("/api/v1/user_info/new_user", server.NewUserInfo)       // needs to add validation
-	//r.PUT("/api/v1/user_info/update_info", server.UpdateUserInfo)
+	r.POST("/api/v1/bet/new_bet", server.PlaceBets)
+	r.PUT("/api/v1/bet/update", server.UpdateBets)
+	r.GET("/api/v1/bet/user_bets", server.UserBets)
+	r.DELETE("/api/v1/bet/delete", server.DeleteBets)
+	r.GET("/api/v1/bet/history", server.EventHistory)
+	r.GET("/api/v1/user_info/userinfo_ID", server.GetUserInfoByID)
+	r.POST("/api/v1/user_info/new_user", server.NewUserInfo)
+	r.PUT("/api/v1/user_info/update_info", server.UpdateUserInfo)
 	r.DELETE("/api/v1/user_info/delete", server.DeleteUserInfoByID)
 	r.GET("/api/v1/event/eventdata", server.GetAllEvents)
 	// r.POST("/api/v1/event/eventdata_bydate", GetEventsByDate
