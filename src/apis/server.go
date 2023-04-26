@@ -20,6 +20,8 @@ var (
 	errMinAmount        error = errors.New("minimum amount that can be placed is 1")
 	errNumberNotAllowed error = errors.New("bet numbers should be between 1 and 90")
 	errIncorrectPhoneNo error = errors.New("phone number is entered incorrectly")
+	errInvalidEventID   error = errors.New("event ID incorrect")
+	errInvalidUserID    error = errors.New("User ID is incorrect")
 )
 
 type Server struct {

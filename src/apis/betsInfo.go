@@ -27,12 +27,21 @@ func (s Server) PlaceBets(c *gin.Context) {
 		return
 	}
 
-	eventUIDConv, _ := primitive.ObjectIDFromHex(eventUID)
-	userIDConv, _ := primitive.ObjectIDFromHex(userID)
-	amount, _ := strconv.Atoi(Amount)
-	if amount < 1 {
-		s.Logger.Error(errMinAmount)
-		c.JSON(http.StatusBadRequest, "Bad Format")
+	eventUIDConv, err := primitive.ObjectIDFromHex(eventUID)
+	if err != nil {
+		s.Logger.Error(errInvalidEventID)
+		c.JSON(http.StatusBadRequest, errInvalidEventID)
+		return
+	}
+	userIDConv, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		s.Logger.Error(errInvalidUserID)
+		c.JSON(http.StatusBadRequest, errInvalidUserID)
+		return
+	}
+	amountConv, err := s.AmountCheck(Amount, c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, err)
 		return
 	}
 
@@ -48,7 +57,7 @@ func (s Server) PlaceBets(c *gin.Context) {
 		ParticipantInfo: lsdb.ParticipantInfo{
 			UserID:     userIDConv,
 			BetNumbers: betNumbersConv,
-			Amount:     amount,
+			Amount:     amountConv,
 		},
 	}
 
