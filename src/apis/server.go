@@ -14,15 +14,17 @@ import (
 )
 
 var (
-	errIncorrectField   error = errors.New("incorrect field or fields")
-	errMinNumbers       error = errors.New("minimum  number that can be selected is 1")
-	errMaxNumbers       error = errors.New("maximum numbers that can be selected are  5")
-	errMinAmount        error = errors.New("minimum amount that can be placed is 1")
-	errInvalidAmount    error = errors.New("invalid amount")
-	errNumberNotAllowed error = errors.New("bet numbers should be between 1 and 90")
-	errIncorrectPhoneNo error = errors.New("phone number is entered incorrectly")
-	errInvalidEventID   error = errors.New("event ID incorrect")
-	errInvalidUserID    error = errors.New("user ID is incorrect")
+	errIncorrectField    error = errors.New("incorrect field")
+	errMinNumbers        error = errors.New("minimum  number that can be selected is 1")
+	errMaxNumbers        error = errors.New("maximum numbers that can be selected are  5")
+	errDuplicatedNumbers error = errors.New("duplicate numbers not allowed")
+	errMinAmount         error = errors.New("minimum amount that can be placed is 1")
+	errInvalidAmount     error = errors.New("invalid amount")
+	errNumberNotAllowed  error = errors.New("bet numbers should be between 1 and 90")
+	errIncorrectPhoneNo  error = errors.New("phone number is entered incorrectly")
+	errInvalidEventID    error = errors.New("event ID incorrect")
+	errInvalidUserID     error = errors.New("user ID is incorrect")
+	errInvalidBetUID     error = errors.New("Bet UID is incorrect")
 )
 
 type Server struct {
@@ -59,7 +61,7 @@ func NewServer(server Server) error {
 	r.PUT("/api/v1/bet/update", server.UpdateBets)
 	r.GET("/api/v1/bet/user/bets", server.UserBets)
 	r.DELETE("/api/v1/bet/delete", server.DeleteBets)
-	//r.GET("/api/v1/bet/history", server.EventHistory)
+	r.GET("/api/v1/bet/history", server.EventHistory)
 	r.GET("/api/v1/user/info/userinfo/ID", server.GetUserInfoByID)
 	r.POST("/api/v1/user/info/new", server.NewUserInfo)
 	r.PUT("/api/v1/user/info/update", server.UpdateUserInfo) // undesired behaviour

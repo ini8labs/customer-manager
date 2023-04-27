@@ -1,47 +1,89 @@
 package apis
 
 import (
-	"strconv"
-	"strings"
-
 	//"net/http"
 
-	"github.com/gin-gonic/gin"
 	"github.com/ini8labs/lsdb"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func convert(str string) ([]int, error) {
-	split := strings.Split(str, ",")
-	strToInt := []int{}
+func validateUserID(str string) (primitive.ObjectID, error) {
+	ObjectID, err := strToPrimitiveObjID(str)
+	return ObjectID, err
+}
 
-	if len(split) < 1 {
+func validateEventID(str string) (primitive.ObjectID, error) {
+	ObjectID, err := strToPrimitiveObjID(str)
+	return ObjectID, err
+}
+
+func validateBetUID(str string) (primitive.ObjectID, error) {
+	ObjectID, err := strToPrimitiveObjID(str)
+	return ObjectID, err
+}
+
+// func validateBetnumbers(str string) ([]int, error) {
+// 	split := strings.Split(str, ",")
+// 	strToInt := []int{}
+
+// 	if len(split) < 1 {
+// 		return nil, errMinNumbers
+// 	}
+
+// 	if len(split) > 5 {
+// 		return nil, errMaxNumbers
+// 	}
+
+// 	for _, i := range split {
+// 		j, err := strconv.Atoi(i)
+// 		if err != nil || j < 1 || j > 90 {
+// 			return nil, errNumberNotAllowed
+// 		}
+
+// 		strToInt = append(strToInt, j)
+// 	}
+// 	return strToInt, nil
+// }
+
+func validateBetnumbers(nums []int) ([]int, error) {
+	if len(nums) < 1 {
 		return nil, errMinNumbers
 	}
 
-	if len(split) > 5 {
+	if len(nums) > 5 {
 		return nil, errMaxNumbers
 	}
 
-	for _, i := range split {
-		j, err := strconv.Atoi(i)
-		if err != nil || j < 1 || j > 90 {
+	err := hasDuplicates(nums)
+	if err != nil {
+		return nil, errDuplicatedNumbers
+	}
+
+	for _, num := range nums {
+		if num < 1 || num > 90 {
 			return nil, errNumberNotAllowed
 		}
-
-		strToInt = append(strToInt, j)
 	}
-	return strToInt, nil
+
+	return nums, nil
 }
 
-func amountCheck(amount string, c *gin.Context) (int, error) {
-	amountInt, err := strconv.Atoi(amount)
-	if err != nil {
-		return 0, errInvalidAmount
+func hasDuplicates(nums []int) error {
+	seen := make(map[int]bool)
+	for _, num := range nums {
+		if seen[num] {
+			return errDuplicatedNumbers
+		}
+		seen[num] = true
 	}
-	if amountInt < 1 {
+	return nil
+}
+
+func validateAmount(amount int) (int, error) {
+	if amount < 1 {
 		return 0, errMinAmount
 	}
-	return amountInt, nil
+	return amount, nil
 }
 
 func requiredInfo(resp []lsdb.EventParticipantInfo) []UserBetsInfo {
@@ -57,10 +99,11 @@ func requiredInfo(resp []lsdb.EventParticipantInfo) []UserBetsInfo {
 	return respSlice
 }
 
-// func (s Server)badRequestError(err error, c *gin.Context) {
-// 	if err != nil {
-// 		s.Logger.Error(err)
-// 		c.JSON(http.StatusBadRequest, err)
-// 		return
-// 	}
-// }
+func strToPrimitiveObjID(str string) (primitive.ObjectID, error) {
+	eventUIDConv, err := primitive.ObjectIDFromHex(str)
+	if err != nil {
+		return primitive.NilObjectID, errInvalidEventID
+	}
+
+	return eventUIDConv, nil
+}
