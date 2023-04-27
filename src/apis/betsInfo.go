@@ -2,8 +2,8 @@ package apis
 
 import (
 	// "errors"
+
 	"net/http"
-	"strconv"
 
 	//"strings"
 
@@ -13,6 +13,21 @@ import (
 	// "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+type EventPartInfo struct {
+	BetUID     primitive.ObjectID `bson:"_id,omitempty"`
+	UserID     primitive.ObjectID `bson:"user_id,omitempty"`
+	BetNumbers []int              `bson:"bet_numbers,omitempty"`
+	Amount     int                `bson:"amount,omitempty"`
+}
+
+type UserBetsInfo struct {
+	BetUID     primitive.ObjectID `bson:"_id,omitempty"`
+	BetNumbers []int              `bson:"bet_numbers,omitempty"`
+	Amount     int                `bson:"amount,omitempty"`
+}
+
+var getUserResp []UserBetsInfo
 
 func (s Server) PlaceBets(c *gin.Context) {
 	eventUID, exists1 := c.GetQuery("eventuid")
@@ -39,16 +54,17 @@ func (s Server) PlaceBets(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errInvalidUserID)
 		return
 	}
-	amountConv, err := s.AmountCheck(Amount, c)
+	amountConv, err := amountCheck(Amount, c)
 	if err != nil {
+		s.Logger.Error(err)
 		c.JSON(http.StatusBadRequest, err)
 		return
 	}
 
-	betNumbersConv, err := s.Convert(betNumbers)
+	betNumbersConv, err := convert(betNumbers)
 	if err != nil {
-		s.Logger.Error("Bet numbers no proper")
-		c.JSON(http.StatusBadRequest, "Bad format")
+		s.Logger.Error(err)
+		c.JSON(http.StatusBadRequest, err)
 		return
 	}
 
@@ -82,15 +98,15 @@ func (s Server) UpdateBets(c *gin.Context) {
 	}
 
 	bettUIDConv, _ := primitive.ObjectIDFromHex(betUID)
-	betNumbersConv, err := s.Convert(betNumbers)
+	betNumbersConv, err := convert(betNumbers)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, "Bad format")
 		return
 	}
-	amount, _ := strconv.Atoi(Amount)
-	if amount < 1 {
-		s.Logger.Error(errMinAmount)
-		c.JSON(http.StatusBadRequest, "Bad Format")
+
+	amountConv, err := amountCheck(Amount, c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, err)
 		return
 	}
 
@@ -98,7 +114,7 @@ func (s Server) UpdateBets(c *gin.Context) {
 		BetUID: bettUIDConv,
 		ParticipantInfo: lsdb.ParticipantInfo{
 			BetNumbers: betNumbersConv,
-			Amount:     amount,
+			Amount:     amountConv,
 		},
 	}
 
@@ -109,30 +125,6 @@ func (s Server) UpdateBets(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, "Bet Updated Successfully")
-}
-
-func (s Server) UserBets(c *gin.Context) {
-	userID, exists1 := c.GetQuery("userid")
-	if !exists1 {
-		s.Logger.Error(errIncorrectField)
-		c.JSON(http.StatusBadRequest, "Bad Format")
-		return
-	}
-
-	userIDConv, _ := primitive.ObjectIDFromHex(userID)
-	resp, err := s.Client.GetUserBets(userIDConv)
-	if err != nil {
-		s.Logger.Error(err.Error())
-		c.JSON(http.StatusBadRequest, err.Error())
-		return
-	}
-
-	if len(resp) < 1 {
-		s.Logger.Error("empty response")
-		c.JSON(http.StatusNotFound, "Not found")
-		return
-	}
-	c.JSON(http.StatusOK, resp)
 }
 
 func (s Server) DeleteBets(c *gin.Context) {
@@ -159,41 +151,52 @@ func (s Server) DeleteBets(c *gin.Context) {
 	c.JSON(http.StatusOK, "Bet Deleted Successfully")
 }
 
-// make changes
-func (s Server) EventHistory(c *gin.Context) {
-	eventUID, exists1 := c.GetQuery("eventuid")
-	if !exists1 {
+// func (s Server) EventHistory(c *gin.Context) {
+// 	eventUID, exists1 := c.GetQuery("eventuid")
+// 	if !exists1 {
+// 		s.Logger.Error(errIncorrectField)
+// 		c.JSON(http.StatusBadRequest, "Bad Format")
+// 		return
+// 	}
+
+// 	eventUIDConv, err := primitive.ObjectIDFromHex(eventUID)
+// 	if err != nil {
+// 		s.Logger.Errorf("error converting string to HEX: %s", err.Error())
+// 		c.JSON(http.StatusBadRequest, err.Error())
+// 		return
+// 	}
+
+// 	resp, err := s.Client.GetParticipantsInfoByEventID(eventUIDConv)
+// 	if err != nil {
+// 		s.Logger.Error(err.Error())
+// 		c.JSON(http.StatusBadRequest, err.Error())
+// 		return
+// 	}
+// 	respSlice = s.RequiredInfo(resp)
+// 	c.JSON(http.StatusOK, respSlice)
+// }
+
+func (s Server) UserBets(c *gin.Context) {
+	userID, exists := c.GetQuery("userid")
+	if !exists {
 		s.Logger.Error(errIncorrectField)
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 
-	eventUIDConv, err := primitive.ObjectIDFromHex(eventUID)
+	userIDConv, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		s.Logger.Errorf("error converting string to HEX: %s", err.Error())
-		c.JSON(http.StatusBadRequest, "invalid event UID")
+		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
 
-	resp, err := s.Client.GetParticipantsInfoByEventID(eventUIDConv)
+	resp, err := s.Client.GetUserBets(userIDConv)
 	if err != nil {
 		s.Logger.Error(err.Error())
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
-
-	if len(resp) < 1 {
-		s.Logger.Error("empty response")
-		c.JSON(http.StatusNotFound, err.Error())
-		return
-	}
-
-	// var respSlice []lsdb.EventParticipantInfo
-
-	// for _, item := range resp {
-	// 	item.CreatedAt="",
-	// 	item.UpdatedAt="",
-	// }
-
-	c.JSON(http.StatusOK, resp)
+	getUserResp = requiredInfo(resp)
+	c.JSON(http.StatusOK, getUserResp)
 }

@@ -32,17 +32,17 @@ func (s Server) GetAllEvents(c *gin.Context) {
 	c.JSON(http.StatusOK, eventinfo)
 }
 
-func (s Server) GetEventsByDate(c *gin.Context) {
-	var eventdate EventDate
-	if err := c.ShouldBind(&eventdate); err != nil {
-		c.JSON(http.StatusBadRequest, "Bad Format")
-		return
-	}
+// func (s Server) GetEventsByDate(c *gin.Context) {
+// 	var eventdate EventDate
+// 	if err := c.ShouldBind(&eventdate); err != nil {
+// 		c.JSON(http.StatusBadRequest, "Bad Format")
+// 		return
+// 	}
 
-	resp, err := s.Client.GetEventsByDate(eventdate.EventDate)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
-		return
-	}
-	c.JSON(http.StatusOK, resp)
-}
+// 	resp, err := s.Client.GetEventsByDate(eventdate.EventDate)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
+// 		return
+// 	}
+// 	c.JSON(http.StatusOK, resp)
+// }

@@ -13,6 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// working as expecetd )
 func (s Server) NewUserInfo(c *gin.Context) {
 	name, exists1 := c.GetQuery("name")
 	phone, exists2 := c.GetQuery("phone")
@@ -50,9 +51,10 @@ func (s Server) NewUserInfo(c *gin.Context) {
 	s.Logger.Info("Create operation performed")
 }
 
+// not running as expecetd
 func (s Server) UpdateUserInfo(c *gin.Context) {
 	var userInfo UpdateInfoStruct
-	if err := c.ShouldBind(&userInfo); err != nil {
+	if err := c.BindJSON(&userInfo); err != nil {
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
@@ -63,9 +65,10 @@ func (s Server) UpdateUserInfo(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
 		return
 	}
-	c.JSON(http.StatusOK, "User Updated Successfully")
+	c.JSON(http.StatusCreated, "User Updated Successfully")
 }
 
+// running as expecetd
 func (s Server) GetUserInfoByID(c *gin.Context) {
 	userID, exists1 := c.GetQuery("userid")
 	if !exists1 {
@@ -95,7 +98,6 @@ func (s Server) GetUserInfoByID(c *gin.Context) {
 	}
 
 	userInfoStruct := UserInfoStruct{
-		UID:   resp.UID,
 		Name:  resp.Name,
 		Phone: resp.Phone,
 		EMail: resp.EMail,
@@ -104,16 +106,21 @@ func (s Server) GetUserInfoByID(c *gin.Context) {
 	c.JSON(http.StatusOK, userInfoStruct)
 }
 
+// not running as expecetd
 func (s Server) DeleteUserInfoByID(c *gin.Context) {
 	var userinfo lsdb.UserInfo
-
-	if err := c.ShouldBind(&userinfo); err != nil {
+	govID, exists1 := c.GetQuery("govid")
+	if !exists1 {
+		s.Logger.Error(errIncorrectField)
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 
-	err1 := s.Client.DeleteUserInfo(userinfo)
-	if err1 != nil {
+	userinfo.GovID = govID
+
+	err := s.Client.DeleteUserInfo(userinfo)
+	if err != nil {
+		s.Logger.Error("internal server error")
 		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
 		return
 	}
