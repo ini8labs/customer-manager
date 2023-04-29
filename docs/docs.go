@@ -16,38 +16,24 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/chat/reply/{language}": {
-            "post": {
-                "tags": ["Customer"],
+        "/bet/delete/{betuid}": {
+            "delete": {
+                "tags": ["Lottery APIs"],
                 "parameters": [
                     {
-                        "description": "eng or twi",
-                        "name": "language",
+                        "description": "enter a valid BetUID",
+                        "name": "betuid",
                         "in": "path",
                         "required": true,
                         "type": "string",
-                        "enum": ["eng", "twi"]
-                    },
-                {
-                    "description": "Add the data",
-                    "name": "select language",
-                    "in": "body",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                            "data":{
-                                "type": "string",
-                                "example": "hello"
-                            }
-                        }
-                        }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "ok",
+                    "204": {
+                        "description": "key deleted successfully",
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "example": "key deleted successfully"
                         }
                     }
                 }
