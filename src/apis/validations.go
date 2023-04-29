@@ -91,8 +91,8 @@ func requiredInfo(resp []lsdb.EventParticipantInfo) []UserBetsInfo {
 	for i := 0; i < len(resp); i++ {
 		var tempResp UserBetsInfo
 		tempResp.BetUID = resp[i].BetUID
-		tempResp.Amount = resp[i].Amount
-		tempResp.BetNumbers = resp[i].BetNumbers
+		tempResp.Amount = resp[i].ParticipantInfo.Amount
+		tempResp.BetNumbers = resp[i].ParticipantInfo.BetNumbers
 
 		respSlice = append(respSlice, tempResp)
 	}

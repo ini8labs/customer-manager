@@ -21,10 +21,9 @@ type EventPartInfo struct {
 }
 
 type UserBetsInfo struct {
-	BetUID          primitive.ObjectID   `bson:"_id,omitempty"`
-	ParticipantInfo lsdb.ParticipantInfo `bson:"participant_info,omitempty"`
-	BetNumbers      []int                `bson:"bet_numbers,omitempty"`
-	Amount          int                  `bson:"amount,omitempty"`
+	BetUID     primitive.ObjectID `bson:"_id,omitempty"`
+	BetNumbers []int              `bson:"bet_numbers,omitempty"`
+	Amount     int                `bson:"amount,omitempty"`
 }
 
 type PlaceBetsStruct struct {
@@ -135,62 +134,57 @@ func (s Server) UpdateBets(c *gin.Context) {
 	c.JSON(http.StatusCreated, "Bet Updated Successfully")
 }
 
-func (s Server) DeleteBets(c *gin.Context) {
-	betUID, exists1 := c.GetQuery("betuid")
-	if !exists1 {
-		s.Logger.Error(errIncorrectField)
-		c.JSON(http.StatusBadRequest, "Bad Format")
-		return
-	}
+// func (s Server) DeleteBets(c *gin.Context) {
+// 	betUID, exists1 := c.GetQuery("betuid")
+// 	if !exists1 {
+// 		s.Logger.Error(errIncorrectField)
+// 		c.JSON(http.StatusBadRequest, "Bad Format")
+// 		return
+// 	}
 
-	bettUIDConv, err := primitive.ObjectIDFromHex(betUID)
-	if err != nil {
-		s.Logger.Error("Bad BetUID")
-		c.JSON(http.StatusBadRequest, "Bad format")
-		return
-	}
+// 	bettUIDConv, err := primitive.ObjectIDFromHex(betUID)
+// 	if err != nil {
+// 		s.Logger.Error("Bad BetUID")
+// 		c.JSON(http.StatusBadRequest, "Bad format")
+// 		return
+// 	}
 
-	if err := s.Client.DeleteUserBet(bettUIDConv); err != nil {
-		s.Logger.Error(err.Error())
-		c.JSON(http.StatusBadRequest, err.Error())
-		return
-	}
+// 	if err := s.Client.DeleteUserBet(bettUIDConv); err != nil {
+// 		s.Logger.Error(err.Error())
+// 		c.JSON(http.StatusBadRequest, err.Error())
+// 		return
+// 	}
 
-	c.JSON(http.StatusOK, "Bet Deleted Successfully")
-}
+// 	c.JSON(http.StatusOK, "Bet Deleted Successfully")
+// }
 
-func (s Server) EventHistory(c *gin.Context) {
-	eventUID, exists1 := c.GetQuery("eventuid")
-	if !exists1 {
-		s.Logger.Error(errIncorrectField)
-		c.JSON(http.StatusBadRequest, "Bad Format")
-		return
-	}
+// func (s Server) EventHistory(c *gin.Context) {
+// 	eventUID, exists1 := c.GetQuery("eventuid")
+// 	if !exists1 {
+// 		s.Logger.Error(errIncorrectField)
+// 		c.JSON(http.StatusBadRequest, "Bad Format")
+// 		return
+// 	}
 
-	eventUIDConv, err := primitive.ObjectIDFromHex(eventUID)
-	if err != nil {
-		s.Logger.Errorf("error validateBetnumbersing string to HEX: %s", err.Error())
-		c.JSON(http.StatusBadRequest, err.Error())
-		return
-	}
+// 	eventUIDConv, err := primitive.ObjectIDFromHex(eventUID)
+// 	if err != nil {
+// 		s.Logger.Errorf("error validateBetnumbersing string to HEX: %s", err.Error())
+// 		c.JSON(http.StatusBadRequest, err.Error())
+// 		return
+// 	}
 
-	resp, err := s.Client.GetParticipantsInfoByEventID(eventUIDConv)
-	if err != nil {
-		s.Logger.Error(err.Error())
-		c.JSON(http.StatusBadRequest, err.Error())
-		return
-	}
-	respSlice = s.RequiredInfo(resp)
-	c.JSON(http.StatusOK, respSlice)
-}
+// 	resp, err := s.Client.GetParticipantsInfoByEventID(eventUIDConv)
+// 	if err != nil {
+// 		s.Logger.Error(err.Error())
+// 		c.JSON(http.StatusBadRequest, err.Error())
+// 		return
+// 	}
+// 	respSlice = s.RequiredInfo(resp)
+// 	c.JSON(http.StatusOK, respSlice)
+// }
 
 func (s Server) UserBets(c *gin.Context) {
-	userID, exists := c.GetQuery("userid")
-	if !exists {
-		s.Logger.Error(errIncorrectField)
-		c.JSON(http.StatusBadRequest, "Bad Format")
-		return
-	}
+	userID := c.Param("bets")
 
 	userIDConv, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
@@ -207,12 +201,4 @@ func (s Server) UserBets(c *gin.Context) {
 	}
 	getUserResp = requiredInfo(resp)
 	c.JSON(http.StatusOK, getUserResp)
-}
-
-func (s Server) errHandle(err error) {
-	if err != nil {
-		s.Logger.Error(err)
-		c.JSON(http.StatusBadRequest, err)
-		return
-	}
 }

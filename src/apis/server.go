@@ -59,9 +59,9 @@ func NewServer(server Server) error {
 	// API end points
 	r.POST("/api/v1/bet/new", server.PlaceBets)
 	r.PUT("/api/v1/bet/update", server.UpdateBets)
-	r.GET("/api/v1/bet/user/bets", server.UserBets)
-	r.DELETE("/api/v1/bet/delete", server.DeleteBets)
-	r.GET("/api/v1/bet/history", server.EventHistory)
+	r.GET("/api/v1/bet/user/:bets", server.UserBets)
+	//r.DELETE("/api/v1/bet/:delete", server.DeleteBets)
+	//r.GET("/api/v1/bet/history", server.EventHistory)
 	r.GET("/api/v1/user/info/userinfo/ID", server.GetUserInfoByID)
 	r.POST("/api/v1/user/info/new", server.NewUserInfo)
 	r.PUT("/api/v1/user/info/update", server.UpdateUserInfo) // undesired behaviour
