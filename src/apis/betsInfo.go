@@ -134,15 +134,6 @@ func (s Server) UpdateBets(c *gin.Context) {
 	c.JSON(http.StatusCreated, "Bet Updated Successfully")
 }
 
-/**
- * @Summary Delete a user
- * @Description Delete a user from the system by ID
- * @Param BetUID path int true "BetUID"
- * @Produce json
- * @Success 204 "No content"
- * @Failure 404 {string} string "User not found"
- * @Router /bet/delete/{betuid} [delete]
- */
 func (s Server) DeleteBets(c *gin.Context) {
 	betUID := c.Param("betuid")
 
@@ -162,30 +153,25 @@ func (s Server) DeleteBets(c *gin.Context) {
 	c.JSON(http.StatusOK, "Bet Deleted Successfully")
 }
 
-// func (s Server) EventHistory(c *gin.Context) {
-// 	eventUID, exists1 := c.GetQuery("eventuid")
-// 	if !exists1 {
-// 		s.Logger.Error(errIncorrectField)
-// 		c.JSON(http.StatusBadRequest, "Bad Format")
-// 		return
-// 	}
+func (s Server) EventHistory(c *gin.Context) {
+	eventUID := c.Param("eventuid")
 
-// 	eventUIDConv, err := primitive.ObjectIDFromHex(eventUID)
-// 	if err != nil {
-// 		s.Logger.Errorf("error validateBetnumbersing string to HEX: %s", err.Error())
-// 		c.JSON(http.StatusBadRequest, err.Error())
-// 		return
-// 	}
+	eventUIDConv, err := primitive.ObjectIDFromHex(eventUID)
+	if err != nil {
+		s.Logger.Errorf("error validateBetnumbersing string to HEX: %s", err.Error())
+		c.JSON(http.StatusBadRequest, errInvalidEventID.Error())
+		return
+	}
 
-// 	resp, err := s.Client.GetParticipantsInfoByEventID(eventUIDConv)
-// 	if err != nil {
-// 		s.Logger.Error(err.Error())
-// 		c.JSON(http.StatusBadRequest, err.Error())
-// 		return
-// 	}
-// 	respSlice = s.RequiredInfo(resp)
-// 	c.JSON(http.StatusOK, respSlice)
-// }
+	resp, err := s.Client.GetParticipantsInfoByEventID(eventUIDConv)
+	if err != nil {
+		s.Logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+	// respSlice = s.RequiredInfo(resp)
+	c.JSON(http.StatusOK, resp)
+}
 
 func (s Server) UserBets(c *gin.Context) {
 	userID := c.Param("bets")
@@ -193,13 +179,14 @@ func (s Server) UserBets(c *gin.Context) {
 	userIDConv, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		s.Logger.Error(err)
-		c.JSON(http.StatusBadRequest, (err.Error()))
+		c.JSON(http.StatusBadRequest, errInvalidUserID.Error())
 	}
 
 	resp, err := s.Client.GetUserBets(userIDConv)
-	if err != nil {
+	s.Logger.Errorln(resp)
+	if err != nil || len(resp) < 1 {
 		s.Logger.Error(err.Error())
-		c.JSON(http.StatusBadRequest, err.Error())
+		c.JSON(http.StatusBadRequest, errInvalidUserID)
 		return
 	}
 	getUserResp = requiredInfoUserBets(resp)

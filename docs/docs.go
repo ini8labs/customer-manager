@@ -29,11 +29,34 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "204": {
-                        "description": "key deleted successfully",
+                    "200": {
+                        "description": "Bet deleted successfully",
                         "schema": {
                             "type": "string",
-                            "example": "key deleted successfully"
+                            "example": "Bet deleted successfully"
+                        }
+                    }
+                }
+            }
+        },
+        "/bet/user/{bets}": {
+            "get": {
+                "tags": ["Lottery APIs"],
+                "parameters": [
+                    {
+                        "description": "enter a valid UserID",
+                        "name": "bets",
+                        "in": "path",
+                        "required": true,
+                        "type": "string",
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bet deleted successfully",
+                        "schema": {
+                            "type": "string",
+                            "example": "Bet deleted successfully"
                         }
                     }
                 }
