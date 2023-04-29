@@ -86,7 +86,7 @@ func validateAmount(amount int) (int, error) {
 	return amount, nil
 }
 
-func requiredInfo(resp []lsdb.EventParticipantInfo) []UserBetsInfo {
+func requiredInfoUserBets(resp []lsdb.EventParticipantInfo) []UserBetsInfo {
 	var respSlice []UserBetsInfo
 	for i := 0; i < len(resp); i++ {
 		var tempResp UserBetsInfo

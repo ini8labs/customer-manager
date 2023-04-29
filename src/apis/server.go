@@ -1,13 +1,17 @@
 package apis
 
 import (
+	docs "customer-manager/docs"
 	"errors"
+
 	//"net/http"
 	//"strconv"
 	//"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ini8labs/lsdb"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -55,12 +59,13 @@ type EventsInfo struct {
 func NewServer(server Server) error {
 
 	r := gin.Default()
+	docs.SwaggerInfo.BasePath = "/api/v1"
 
 	// API end points
 	r.POST("/api/v1/bet/new", server.PlaceBets)
 	r.PUT("/api/v1/bet/update", server.UpdateBets)
 	r.GET("/api/v1/bet/user/:bets", server.UserBets)
-	//r.DELETE("/api/v1/bet/:delete", server.DeleteBets)
+	r.DELETE("/api/v1/bet/delete/:betuid", server.DeleteBets)
 	//r.GET("/api/v1/bet/history", server.EventHistory)
 	r.GET("/api/v1/user/info/userinfo/ID", server.GetUserInfoByID)
 	r.POST("/api/v1/user/info/new", server.NewUserInfo)
@@ -69,5 +74,6 @@ func NewServer(server Server) error {
 	r.GET("/api/v1/event/eventdata", server.GetAllEvents)
 	// r.POST("/api/v1/event/eventdata_bydate", GetEventsByDate
 
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	return r.Run(server.Addr)
 }

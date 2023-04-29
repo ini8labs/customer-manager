@@ -134,29 +134,33 @@ func (s Server) UpdateBets(c *gin.Context) {
 	c.JSON(http.StatusCreated, "Bet Updated Successfully")
 }
 
-// func (s Server) DeleteBets(c *gin.Context) {
-// 	betUID, exists1 := c.GetQuery("betuid")
-// 	if !exists1 {
-// 		s.Logger.Error(errIncorrectField)
-// 		c.JSON(http.StatusBadRequest, "Bad Format")
-// 		return
-// 	}
+/**
+ * @Summary Delete a user
+ * @Description Delete a user from the system by ID
+ * @Param BetUID path int true "BetUID"
+ * @Produce json
+ * @Success 204 "No content"
+ * @Failure 404 {string} string "User not found"
+ * @Router /bet/delete/{betuid} [delete]
+ */
+func (s Server) DeleteBets(c *gin.Context) {
+	betUID := c.Param("betuid")
 
-// 	bettUIDConv, err := primitive.ObjectIDFromHex(betUID)
-// 	if err != nil {
-// 		s.Logger.Error("Bad BetUID")
-// 		c.JSON(http.StatusBadRequest, "Bad format")
-// 		return
-// 	}
+	bettUIDConv, err := primitive.ObjectIDFromHex(betUID)
+	if err != nil {
+		s.Logger.Error("Bad BetUID")
+		c.JSON(http.StatusBadRequest, "Bad format")
+		return
+	}
 
-// 	if err := s.Client.DeleteUserBet(bettUIDConv); err != nil {
-// 		s.Logger.Error(err.Error())
-// 		c.JSON(http.StatusBadRequest, err.Error())
-// 		return
-// 	}
+	if err := s.Client.DeleteUserBet(bettUIDConv); err != nil {
+		s.Logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
 
-// 	c.JSON(http.StatusOK, "Bet Deleted Successfully")
-// }
+	c.JSON(http.StatusOK, "Bet Deleted Successfully")
+}
 
 // func (s Server) EventHistory(c *gin.Context) {
 // 	eventUID, exists1 := c.GetQuery("eventuid")
@@ -188,9 +192,8 @@ func (s Server) UserBets(c *gin.Context) {
 
 	userIDConv, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		s.Logger.Errorf("error validateBetnumbersing string to HEX: %s", err.Error())
-		c.JSON(http.StatusBadRequest, err.Error())
-		return
+		s.Logger.Error(err)
+		c.JSON(http.StatusBadRequest, (err.Error()))
 	}
 
 	resp, err := s.Client.GetUserBets(userIDConv)
@@ -199,6 +202,6 @@ func (s Server) UserBets(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
-	getUserResp = requiredInfo(resp)
+	getUserResp = requiredInfoUserBets(resp)
 	c.JSON(http.StatusOK, getUserResp)
 }
