@@ -14,7 +14,6 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 
 	"github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var (
@@ -29,18 +28,13 @@ var (
 	errInvalidEventID    error = errors.New("event ID incorrect")
 	errInvalidUserID     error = errors.New("invalid user ID")
 	errInvalidBetUID     error = errors.New("Bet UID is incorrect")
+	errInvalidPhoneNum   error = errors.New("invalid phone number")
 )
 
 type Server struct {
 	*logrus.Logger
 	*lsdb.Client
 	Addr string
-}
-
-type UpdateInfoStruct struct {
-	UserID primitive.ObjectID `bson:"userid,omitempty"`
-	Key    string             `bson:"key,omitempty"`
-	Value  string             `bson:"value,omitempty"`
 }
 
 func NewServer(server Server) error {
@@ -56,7 +50,7 @@ func NewServer(server Server) error {
 	r.GET("/api/v1/bet/history/:eventuid", server.betsHistorybyEvent)
 	r.GET("/api/v1/user/info/userinfo/:userid", server.getUserInfoByID)
 	r.POST("/api/v1/user/info/new", server.newUserInfo)
-	r.PUT("/api/v1/user/info/update", server.UpdateUserInfo) // undesired behaviour
+	r.PUT("/api/v1/user/info/update", server.updateUserInfo) // undesired behaviour
 	r.DELETE("/api/v1/user/info/delete/:govid", server.deleteUserInfoByID)
 	r.GET("/api/v1/event/eventdata", server.getAllEvents)
 	// r.POST("/api/v1/event/eventdata_bydate", GetEventsByDate

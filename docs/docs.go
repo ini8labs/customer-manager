@@ -189,6 +189,86 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user/info/new": {
+            "post": {
+                "tags": ["User Information APIs"],
+                "parameters": [
+                {
+                    "description": "Add user datails ",
+                    "name": "info",
+                    "in": "body",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "Name":{
+                                "type": "string",
+                                "example": "Mohit"
+                            },
+                            "Phone": {
+                                "type": "integer",
+                                "example": 1234567890
+                            },
+                            "EMail": {
+                                "type": "string",
+                                "example": "mohit@gmail.com"
+                            },
+                            "GovID": {
+                                "type": "string",
+                                "example": "mohi123"
+                            }
+                        }
+                    }
+                }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string",
+                    "example": "user info added successfully"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/info/update": {
+            "put": {
+                "tags": ["User Information APIs"],
+                "parameters": [
+                {
+                    "description": "Update user datails ",
+                    "name": "info",
+                    "in": "body",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "UserID":{
+                                "type": "string",
+                                "example": "644f3e829684b2aaba49a1e2"
+                            },
+                            "Key": {
+                                "type": "string",
+                                "example": "name"
+                            },
+                            "Value": {
+                                "type": "string",
+                                "example": "MohitChanged"
+                            }
+                        }
+                    }
+                }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string",
+                    "example": "user info updated successfully"
+                        }
+                    }
+                }
+            }
         }
     }
 }`

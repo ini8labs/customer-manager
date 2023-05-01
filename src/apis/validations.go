@@ -119,3 +119,13 @@ func strToPrimitiveObjID(str string) (primitive.ObjectID, error) {
 
 	return eventUIDConv, nil
 }
+
+// func validatePhoneNumber(phone string) (int64, error) {
+
+// 	phoneInt64, err := strconv.ParseInt(phone, 10, 64)
+// 	if err != nil {
+// 		return null, errInvalidPhoneNum
+// 	}
+// 	return phoneInt64, nil
+// 	// phone number shouldn;t stsrt from zero
+// }

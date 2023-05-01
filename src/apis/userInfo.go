@@ -5,7 +5,6 @@ import (
 	// "strings"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ini8labs/lsdb"
@@ -18,59 +17,65 @@ type UserInformation struct {
 	EMail string `bson:"email,omitempty"`
 }
 
+type NewUserInfoFormat struct {
+	GovID string `bson:"gov_id,omitempty"`
+	UserInformation
+}
+
+type UpdateInfoStruct struct {
+	UserID string `bson:"userid,omitempty"`
+	Key    string `bson:"key,omitempty"`
+	Value  string `bson:"value,omitempty"`
+}
+
 var respUserInfo UserInformation
 var userInfo lsdb.UserInfo
 
-// working as expecetd )
 func (s Server) newUserInfo(c *gin.Context) {
-	name, exists1 := c.GetQuery("name")
-	phone, exists2 := c.GetQuery("phone")
-	govID, exists3 := c.GetQuery("govid")
-	eMail, exists4 := c.GetQuery("email")
-
-	// check for no missing fields
-	if !exists1 || !exists2 || !exists3 || !exists4 {
-		s.Logger.Error(errIncorrectField)
-		c.JSON(http.StatusBadRequest, "Bad Format")
+	var newUserInfoFormat NewUserInfoFormat
+	if err := c.ShouldBind(&newUserInfoFormat); err != nil {
+		s.Logger.Error("bad format")
+		c.JSON(http.StatusBadRequest, "bad Format")
 		return
 	}
+
 	// convert phone from string to int64
-	phoneInt64, err := strconv.ParseInt(phone, 10, 64)
+	// phoneInt64, err := strconv.ParseInt(newUserInfoFormat.Phone, 10, 64)
+
+	userInfo.Name = newUserInfoFormat.Name
+	userInfo.Phone = newUserInfoFormat.Phone
+	userInfo.GovID = newUserInfoFormat.GovID
+	userInfo.EMail = newUserInfoFormat.GovID
+
+	err := s.Client.AddNewUserInfo(userInfo)
 	if err != nil {
-		s.Logger.Error(errIncorrectPhoneNo)
-		c.JSON(http.StatusBadRequest, "Bad Format")
+		s.Logger.Error("internal server error")
+		c.JSON(http.StatusBadRequest, "something went wrong with the server")
 		return
 	}
 
-	userInfo := lsdb.UserInfo{
-		Name:  name,
-		Phone: phoneInt64,
-		GovID: govID,
-		EMail: eMail,
-	}
-
-	err1 := s.Client.AddNewUserInfo(userInfo)
-	if err1 != nil {
-		s.Logger.Error("Internal server Error")
-		c.JSON(http.StatusInternalServerError, "Something is wrong with the server")
-		return
-	}
 	c.JSON(http.StatusOK, "User Info Added Successfully")
-	s.Logger.Info("Create operation performed")
+
 }
 
 // not running as expecetd
-func (s Server) UpdateUserInfo(c *gin.Context) {
+func (s Server) updateUserInfo(c *gin.Context) {
 	var userInfo UpdateInfoStruct
 	if err := c.BindJSON(&userInfo); err != nil {
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 
-	err1 := s.Client.UpdateUserInfo(userInfo.UserID, userInfo.Key, userInfo.Value)
+	userIDConv, err := validateID(userInfo.UserID)
+	if err != nil {
+		s.Logger.Error(errInvalidUserID)
+		c.JSON(http.StatusBadRequest, errInvalidUserID.Error())
+	}
+
+	err1 := s.Client.UpdateUserInfo(userIDConv, userInfo.Key, userInfo.Value)
 	if err1 != nil {
 		s.Logger.Error("internal server error")
-		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
+		c.JSON(http.StatusBadRequest, "something went wrong with the server")
 		return
 	}
 	c.JSON(http.StatusCreated, "User Updated Successfully")

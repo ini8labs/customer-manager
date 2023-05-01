@@ -26,7 +26,7 @@ type UserBetsInfo struct {
 	Amount     int                `bson:"amount,omitempty"`
 }
 
-type PlaceBetsStruct struct {
+type newBetsFormat struct {
 	UserID     string `bson:"user_id,omitempty"`
 	EventUID   string `bson:"event_id,omitempty"`
 	BetNumbers []int  `bson:"bet_numbers,omitempty"`
@@ -38,31 +38,31 @@ var respConv []UserBetsInfo
 var eventParticipantInfo lsdb.EventParticipantInfo
 
 func (s Server) placeBets(c *gin.Context) {
-	var placeBetsStruct PlaceBetsStruct
-	if err := c.ShouldBind(&placeBetsStruct); err != nil {
+	var newBetsFormat newBetsFormat
+	if err := c.ShouldBind(&newBetsFormat); err != nil {
 		s.Logger.Error("bad format")
 		c.JSON(http.StatusBadRequest, "bad Format")
 		return
 	}
 
-	userIDValidated, err := validateID(string(placeBetsStruct.UserID))
+	userIDValidated, err := validateID(string(newBetsFormat.UserID))
 	if err != nil {
 		s.Logger.Error(errInvalidUserID)
 		c.JSON(http.StatusBadRequest, errInvalidUserID)
 		return
 	}
 
-	eventUIDValidated, err := validateID(placeBetsStruct.EventUID)
+	eventUIDValidated, err := validateID(newBetsFormat.EventUID)
 	if err != nil {
 		s.Logger.Error(errInvalidEventID)
 		c.JSON(http.StatusBadRequest, errInvalidEventID)
 		return
 	}
 
-	amountValidated, err := validateAmount(placeBetsStruct.Amount)
+	amountValidated, err := validateAmount(newBetsFormat.Amount)
 	errHandle(err)
 
-	betNumbersvalidated, err := validateBetnumbers(placeBetsStruct.BetNumbers)
+	betNumbersvalidated, err := validateBetnumbers(newBetsFormat.BetNumbers)
 	if err != nil {
 		s.Logger.Error(err)
 		c.JSON(http.StatusBadRequest, err)
