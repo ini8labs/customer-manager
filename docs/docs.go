@@ -249,7 +249,7 @@ const docTemplate = `{
                             },
                             "Key": {
                                 "type": "string",
-                                "example": "name"
+                                "example": "name/e_mail/gov_id"
                             },
                             "Value": {
                                 "type": "string",
@@ -265,6 +265,47 @@ const docTemplate = `{
                         "schema": {
                             "type": "string",
                     "example": "user info updated successfully"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/info/update": {
+            "put": {
+                "tags": ["Lottery APIs"],
+                "parameters": [
+                {
+                    "description": "Update user bet",
+                    "name": "info",
+                    "in": "body",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "BetUID":{
+                                "type": "string",
+                                "example": "644a30a72a4bc64af8c80da5"
+                            },
+                            "BetNumbers": {
+                                "type": "array",
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "example": [1,2,3]
+                            },
+                            "Amount": {
+                                "type": "integer",
+                                "example": 5000
+                            }
+                        }
+                    }
+                }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string",
+                    "example": "user bet updated successfully"
                         }
                     }
                 }

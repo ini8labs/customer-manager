@@ -1,7 +1,6 @@
 package apis
 
 import (
-	"fmt"
 	"net/http"
 
 	//"strings"
@@ -21,9 +20,9 @@ type EventParticipantInfo struct {
 }
 
 type UserBetsInfo struct {
-	BetUID     primitive.ObjectID `bson:"_id,omitempty"`
-	BetNumbers []int              `bson:"bet_numbers,omitempty"`
-	Amount     int                `bson:"amount,omitempty"`
+	BetUID     string `bson:"_id,omitempty"`
+	BetNumbers []int  `bson:"bet_numbers,omitempty"`
+	Amount     int    `bson:"amount,omitempty"`
 }
 
 type newBetsFormat struct {
@@ -99,28 +98,30 @@ func (s Server) updateBets(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(userBetsInfo.BetNumbers)
-	betUIDValidated, err := validateID(userBetsInfo.BetUID.Hex())
-	errHandle(err)
+	betUIDValidated, err := validateID(userBetsInfo.BetUID)
+	if err != nil {
+		s.Logger.Error(err)
+		c.JSON(http.StatusBadRequest, errInvalidBetUID.Error())
+		return
+	}
 
 	betNumbersValidated, err := validateBetnumbers(userBetsInfo.BetNumbers)
 	if err != nil {
 		s.Logger.Error(err)
-		c.JSON(http.StatusBadRequest, err.Error())
+		c.JSON(http.StatusBadRequest, errNumberNotAllowed.Error())
 		return
 	}
 
 	amountValidated, err := validateAmount(userBetsInfo.Amount)
-	fmt.Println(amountValidated)
-	errHandle(err)
-
-	eventParticipantInfo := lsdb.EventParticipantInfo{
-		BetUID: betUIDValidated,
-		ParticipantInfo: lsdb.ParticipantInfo{
-			BetNumbers: betNumbersValidated,
-			Amount:     amountValidated,
-		},
+	if err != nil {
+		s.Logger.Error(err)
+		c.JSON(http.StatusBadRequest, errInvalidAmount.Error())
+		return
 	}
+
+	eventParticipantInfo.BetUID = betUIDValidated
+	eventParticipantInfo.Amount = amountValidated
+	eventParticipantInfo.BetNumbers = betNumbersValidated
 
 	if err := s.Client.UpdateUserBet(eventParticipantInfo); err != nil {
 		s.Logger.Error(err.Error())

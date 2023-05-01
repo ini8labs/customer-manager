@@ -48,6 +48,7 @@ func NewServer(server Server) error {
 	r.GET("/api/v1/bet/user/:bets", server.userBets)
 	r.DELETE("/api/v1/bet/delete/:betuid", server.deleteBets)
 	r.GET("/api/v1/bet/history/:eventuid", server.betsHistorybyEvent)
+	r.PUT("/api/v1/bet/update", server.updateBets)
 	r.GET("/api/v1/user/info/userinfo/:userid", server.getUserInfoByID)
 	r.POST("/api/v1/user/info/new", server.newUserInfo)
 	r.PUT("/api/v1/user/info/update", server.updateUserInfo) // undesired behaviour
