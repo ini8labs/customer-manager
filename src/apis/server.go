@@ -43,35 +43,22 @@ type UpdateInfoStruct struct {
 	Value  string             `bson:"value,omitempty"`
 }
 
-type UserInfoStruct struct {
-	Name  string `bson:"name,omitempty"`
-	Phone int64  `bson:"phone,omitempty"`
-	EMail string `bson:"e_mail,omitempty"`
-}
-
-type EventsInfo struct {
-	EventUID  primitive.ObjectID `bson:"_id,omitempty"`
-	EventDate primitive.DateTime `bson:"event_date,omitempty"`
-	EventName string             `bson:"name,omitempty"`
-	EventType string             `bson:"event_type,omitempty"`
-}
-
 func NewServer(server Server) error {
 
 	r := gin.Default()
 	docs.SwaggerInfo.BasePath = "/api/v1"
 
 	// API end points
-	r.POST("/api/v1/bet/new", server.PlaceBets)
-	r.PUT("/api/v1/bet/update", server.UpdateBets)
-	r.GET("/api/v1/bet/user/:bets", server.UserBets)
-	r.DELETE("/api/v1/bet/delete/:betuid", server.DeleteBets)
-	r.GET("/api/v1/bet/history/:eventuid", server.EventHistory)
-	r.GET("/api/v1/user/info/userinfo/ID", server.GetUserInfoByID)
-	r.POST("/api/v1/user/info/new", server.NewUserInfo)
+	r.POST("/api/v1/bet/new", server.placeBets)
+	r.PUT("/api/v1/bet/update", server.updateBets)
+	r.GET("/api/v1/bet/user/:bets", server.userBets)
+	r.DELETE("/api/v1/bet/delete/:betuid", server.deleteBets)
+	r.GET("/api/v1/bet/history/:eventuid", server.betsHistorybyEvent)
+	r.GET("/api/v1/user/info/userinfo/:userid", server.getUserInfoByID)
+	r.POST("/api/v1/user/info/new", server.newUserInfo)
 	r.PUT("/api/v1/user/info/update", server.UpdateUserInfo) // undesired behaviour
-	r.DELETE("/api/v1/user/info/delete", server.DeleteUserInfoByID)
-	r.GET("/api/v1/event/eventdata", server.GetAllEvents)
+	r.DELETE("/api/v1/user/info/delete/:govid", server.deleteUserInfoByID)
+	r.GET("/api/v1/event/eventdata", server.getAllEvents)
 	// r.POST("/api/v1/event/eventdata_bydate", GetEventsByDate
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

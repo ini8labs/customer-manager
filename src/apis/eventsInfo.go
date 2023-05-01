@@ -8,10 +8,19 @@ import (
 
 	"github.com/gin-gonic/gin"
 	// "github.com/ini8labs/lsdb"
-	// "go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (s Server) GetAllEvents(c *gin.Context) {
+type EventsInfo struct {
+	EventUID  primitive.ObjectID `bson:"_id,omitempty"`
+	EventDate primitive.DateTime `bson:"event_date,omitempty"`
+	EventName string             `bson:"name,omitempty"`
+	EventType string             `bson:"event_type,omitempty"`
+}
+
+var eventInfo []EventsInfo
+
+func (s Server) getAllEvents(c *gin.Context) {
 
 	resp, err := s.Client.GetAllEvents()
 	if err != nil {
@@ -20,16 +29,8 @@ func (s Server) GetAllEvents(c *gin.Context) {
 		return
 	}
 
-	var eventinfo []EventsInfo
-
-	for i := 0; i < len(resp); i++ {
-		eventinfo[i].EventUID = resp[i].EventUID
-		eventinfo[i].EventDate = resp[i].EventDate
-		eventinfo[i].EventName = resp[i].Name
-		eventinfo[i].EventType = resp[i].EventType
-
-	}
-	c.JSON(http.StatusOK, eventinfo)
+	eventInfo = requiredEventInfo(resp)
+	c.JSON(http.StatusOK, eventInfo)
 }
 
 // func (s Server) GetEventsByDate(c *gin.Context) {

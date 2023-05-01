@@ -7,17 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func validateUserID(str string) (primitive.ObjectID, error) {
-	ObjectID, err := strToPrimitiveObjID(str)
-	return ObjectID, err
-}
-
-func validateEventID(str string) (primitive.ObjectID, error) {
-	ObjectID, err := strToPrimitiveObjID(str)
-	return ObjectID, err
-}
-
-func validateBetUID(str string) (primitive.ObjectID, error) {
+func validateID(str string) (primitive.ObjectID, error) {
 	ObjectID, err := strToPrimitiveObjID(str)
 	return ObjectID, err
 }
@@ -93,6 +83,28 @@ func requiredInfoUserBets(resp []lsdb.EventParticipantInfo) []UserBetsInfo {
 		tempResp.BetUID = resp[i].BetUID
 		tempResp.Amount = resp[i].ParticipantInfo.Amount
 		tempResp.BetNumbers = resp[i].ParticipantInfo.BetNumbers
+
+		respSlice = append(respSlice, tempResp)
+	}
+	return respSlice
+}
+
+func requiredUserInfo(resp *lsdb.UserInfo) UserInformation {
+	var respSlice UserInformation
+	respSlice.Name = resp.Name
+	respSlice.Phone = resp.Phone
+	respSlice.EMail = resp.EMail
+	return respSlice
+}
+
+func requiredEventInfo(resp []lsdb.LotteryEventInfo) []EventsInfo {
+	var respSlice []EventsInfo
+	for i := 0; i < len(resp); i++ {
+		var tempResp EventsInfo
+		tempResp.EventUID = resp[i].EventUID
+		tempResp.EventDate = resp[i].EventDate
+		tempResp.EventName = resp[i].Name
+		tempResp.EventType = resp[i].EventType
 
 		respSlice = append(respSlice, tempResp)
 	}

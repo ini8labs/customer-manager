@@ -3,18 +3,26 @@ package apis
 import (
 	// "errors"
 	// "strings"
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ini8labs/lsdb"
-
 	// "github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+type UserInformation struct {
+	Name  string `bson:"name,omitempty"`
+	Phone int64  `bson:"phone,omitempty"`
+	EMail string `bson:"email,omitempty"`
+}
+
+var respUserInfo UserInformation
+var userInfo lsdb.UserInfo
+
 // working as expecetd )
-func (s Server) NewUserInfo(c *gin.Context) {
+func (s Server) newUserInfo(c *gin.Context) {
 	name, exists1 := c.GetQuery("name")
 	phone, exists2 := c.GetQuery("phone")
 	govID, exists3 := c.GetQuery("govid")
@@ -68,16 +76,10 @@ func (s Server) UpdateUserInfo(c *gin.Context) {
 	c.JSON(http.StatusCreated, "User Updated Successfully")
 }
 
-// running as expecetd
-func (s Server) GetUserInfoByID(c *gin.Context) {
-	userID, exists1 := c.GetQuery("userid")
-	if !exists1 {
-		s.Logger.Error(errIncorrectField)
-		c.JSON(http.StatusBadRequest, "Bad Format")
-		return
-	}
+func (s Server) getUserInfoByID(c *gin.Context) {
+	userID := c.Param("userid")
 
-	userIDConv, err := primitive.ObjectIDFromHex(userID)
+	userIDConv, err := validateID(userID)
 	if err != nil {
 		s.Logger.Errorf("error converting string to HEX: %s", err.Error())
 		c.JSON(http.StatusBadRequest, "invalid User ID")
@@ -91,34 +93,17 @@ func (s Server) GetUserInfoByID(c *gin.Context) {
 		return
 	}
 
-	if (lsdb.UserInfo{} == *resp) {
-		s.Logger.Error("empty response")
-		c.JSON(http.StatusNotFound, "Not found")
-		return
-	}
+	respUserInfo = requiredUserInfo(resp)
+	c.JSON(http.StatusOK, respUserInfo)
 
-	userInfoStruct := UserInfoStruct{
-		Name:  resp.Name,
-		Phone: resp.Phone,
-		EMail: resp.EMail,
-	}
-
-	c.JSON(http.StatusOK, userInfoStruct)
+	fmt.Println(respUserInfo)
 }
 
 // not running as expecetd
-func (s Server) DeleteUserInfoByID(c *gin.Context) {
-	var userinfo lsdb.UserInfo
-	govID, exists1 := c.GetQuery("govid")
-	if !exists1 {
-		s.Logger.Error(errIncorrectField)
-		c.JSON(http.StatusBadRequest, "Bad Format")
-		return
-	}
+func (s Server) deleteUserInfoByID(c *gin.Context) {
+	userInfo.GovID = c.Param("govid")
 
-	userinfo.GovID = govID
-
-	err := s.Client.DeleteUserInfo(userinfo)
+	err := s.Client.DeleteUserInfo(userInfo)
 	if err != nil {
 		s.Logger.Error("internal server error")
 		c.JSON(http.StatusInternalServerError, "something is wrong with the server")

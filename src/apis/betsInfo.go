@@ -13,7 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type EventPartInfo struct {
+type EventParticipantInfo struct {
 	BetUID     primitive.ObjectID `bson:"_id,omitempty"`
 	UserID     primitive.ObjectID `bson:"user_id,omitempty"`
 	BetNumbers []int              `bson:"bet_numbers,omitempty"`
@@ -27,15 +27,17 @@ type UserBetsInfo struct {
 }
 
 type PlaceBetsStruct struct {
-	UserID     primitive.ObjectID `bson:"user_id,omitempty"`
-	EventUID   primitive.ObjectID `bson:"event_id,omitempty"`
-	BetNumbers []int              `bson:"bet_numbers,omitempty"`
-	Amount     int                `bson:"amount,omitempty"`
+	UserID     string `bson:"user_id,omitempty"`
+	EventUID   string `bson:"event_id,omitempty"`
+	BetNumbers []int  `bson:"bet_numbers,omitempty"`
+	Amount     int    `bson:"amount,omitempty"`
 }
 
-var getUserResp []UserBetsInfo
+var respConv []UserBetsInfo
 
-func (s Server) PlaceBets(c *gin.Context) {
+var eventParticipantInfo lsdb.EventParticipantInfo
+
+func (s Server) placeBets(c *gin.Context) {
 	var placeBetsStruct PlaceBetsStruct
 	if err := c.ShouldBind(&placeBetsStruct); err != nil {
 		s.Logger.Error("bad format")
@@ -43,14 +45,14 @@ func (s Server) PlaceBets(c *gin.Context) {
 		return
 	}
 
-	userIDValidated, err := validateUserID(placeBetsStruct.UserID.Hex())
+	userIDValidated, err := validateID(string(placeBetsStruct.UserID))
 	if err != nil {
 		s.Logger.Error(errInvalidUserID)
 		c.JSON(http.StatusBadRequest, errInvalidUserID)
 		return
 	}
 
-	eventUIDValidated, err := validateEventID(placeBetsStruct.EventUID.Hex())
+	eventUIDValidated, err := validateID(placeBetsStruct.EventUID)
 	if err != nil {
 		s.Logger.Error(errInvalidEventID)
 		c.JSON(http.StatusBadRequest, errInvalidEventID)
@@ -67,15 +69,19 @@ func (s Server) PlaceBets(c *gin.Context) {
 		return
 	}
 
-	eventParticipantInfo := lsdb.EventParticipantInfo{
-		EventUID: eventUIDValidated,
-		ParticipantInfo: lsdb.ParticipantInfo{
-			UserID:     userIDValidated,
-			BetNumbers: betNumbersvalidated,
-			Amount:     amountValidated,
-		},
-	}
+	// eventParticipantInfo := lsdb.EventParticipantInfo{
+	// 	EventUID: eventUIDValidated,
+	// 	ParticipantInfo: lsdb.ParticipantInfo{
+	// 		UserID:     userIDValidated,
+	// 		BetNumbers: betNumbersvalidated,
+	// 		Amount:     amountValidated,
+	// 	},
+	// }
 
+	eventParticipantInfo.UserID = userIDValidated
+	eventParticipantInfo.EventUID = eventUIDValidated
+	eventParticipantInfo.Amount = amountValidated
+	eventParticipantInfo.BetNumbers = betNumbersvalidated
 	if err := s.Client.AddUserBet(eventParticipantInfo); err != nil {
 		s.Logger.Error(err.Error())
 		c.JSON(http.StatusBadRequest, err.Error())
@@ -85,17 +91,7 @@ func (s Server) PlaceBets(c *gin.Context) {
 	c.JSON(http.StatusOK, "Bets Placed Successfully")
 }
 
-func errHandle(err error) {
-	var s Server
-	var c *gin.Context
-	if err != nil {
-		s.Logger.Error(err.Error())
-		c.JSON(http.StatusBadRequest, err.Error())
-		return
-	}
-}
-
-func (s Server) UpdateBets(c *gin.Context) {
+func (s Server) updateBets(c *gin.Context) {
 	var userBetsInfo UserBetsInfo
 	if err := c.ShouldBind(&userBetsInfo); err != nil {
 		s.Logger.Error("bad format")
@@ -104,7 +100,7 @@ func (s Server) UpdateBets(c *gin.Context) {
 	}
 
 	fmt.Println(userBetsInfo.BetNumbers)
-	betUIDValidated, err := validateBetUID(userBetsInfo.BetUID.Hex())
+	betUIDValidated, err := validateID(userBetsInfo.BetUID.Hex())
 	errHandle(err)
 
 	betNumbersValidated, err := validateBetnumbers(userBetsInfo.BetNumbers)
@@ -134,7 +130,7 @@ func (s Server) UpdateBets(c *gin.Context) {
 	c.JSON(http.StatusCreated, "Bet Updated Successfully")
 }
 
-func (s Server) DeleteBets(c *gin.Context) {
+func (s Server) deleteBets(c *gin.Context) {
 	betUID := c.Param("betuid")
 
 	bettUIDConv, err := primitive.ObjectIDFromHex(betUID)
@@ -153,10 +149,10 @@ func (s Server) DeleteBets(c *gin.Context) {
 	c.JSON(http.StatusOK, "Bet Deleted Successfully")
 }
 
-func (s Server) EventHistory(c *gin.Context) {
+func (s Server) betsHistorybyEvent(c *gin.Context) {
 	eventUID := c.Param("eventuid")
 
-	eventUIDConv, err := primitive.ObjectIDFromHex(eventUID)
+	eventUIDConv, err := validateID(eventUID)
 	if err != nil {
 		s.Logger.Errorf("error validateBetnumbersing string to HEX: %s", err.Error())
 		c.JSON(http.StatusBadRequest, errInvalidEventID.Error())
@@ -169,26 +165,39 @@ func (s Server) EventHistory(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
-	// respSlice = s.RequiredInfo(resp)
-	c.JSON(http.StatusOK, resp)
+
+	respConv = requiredInfoUserBets(resp)
+	c.JSON(http.StatusOK, respConv)
 }
 
-func (s Server) UserBets(c *gin.Context) {
+func (s Server) userBets(c *gin.Context) {
 	userID := c.Param("bets")
 
-	userIDConv, err := primitive.ObjectIDFromHex(userID)
+	userIDConv, err := validateID(userID)
 	if err != nil {
 		s.Logger.Error(err)
 		c.JSON(http.StatusBadRequest, errInvalidUserID.Error())
+		return
 	}
 
 	resp, err := s.Client.GetUserBets(userIDConv)
 	s.Logger.Errorln(resp)
-	if err != nil || len(resp) < 1 {
+	if err != nil {
 		s.Logger.Error(err.Error())
 		c.JSON(http.StatusBadRequest, errInvalidUserID)
 		return
 	}
-	getUserResp = requiredInfoUserBets(resp)
-	c.JSON(http.StatusOK, getUserResp)
+
+	respConv = requiredInfoUserBets(resp)
+	c.JSON(http.StatusOK, respConv)
+}
+
+func errHandle(err error) {
+	var s Server
+	var c *gin.Context
+	if err != nil {
+		s.Logger.Error(err.Error())
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
 }

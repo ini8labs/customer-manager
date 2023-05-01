@@ -53,10 +53,138 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Bet deleted successfully",
+                        "description": "Status ok",
                         "schema": {
                             "type": "string",
-                            "example": "Bet deleted successfully"
+                            "example": "Status ok"
+                        }
+                    }
+                }
+            }
+        },
+        "/bet/history/{eventuid}": {
+            "get": {
+                "tags": ["Lottery APIs"],
+                "parameters": [
+                    {
+                        "description": "enter a valid EventUID",
+                        "name": "eventuid",
+                        "in": "path",
+                        "required": true,
+                        "type": "string",
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Event history retrieved successfully",
+                        "schema": {
+                            "type": "string",
+                            "example": "Event history retrieved successfully"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/info/userinfo/{userid}": {
+            "get": {
+                "tags": ["User Information APIs"],
+                "parameters": [
+                    {
+                        "description": "enter a valid UserID",
+                        "name": "userid",
+                        "in": "path",
+                        "required": true,
+                        "type": "string",
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User information retrieved successfully",
+                        "schema": {
+                            "type": "string",
+                            "example": "User information retrieved successfully"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/info/delete/{govid}": {
+            "delete": {
+                "tags": ["User Information APIs"],
+                "parameters": [
+                    {
+                        "description": "enter a valid GovID",
+                        "name": "govid",
+                        "in": "path",
+                        "required": true,
+                        "type": "string",
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User information deleted successfully",
+                        "schema": {
+                            "type": "string",
+                            "example": "User information deleted successfully"
+                        }
+                    }
+                }
+            }
+        },
+        "/event/eventdata": {
+            "get": {
+                "tags": ["Events APIs"],
+                "responses": {
+                    "200": {
+                        "description": "Events retrieved",
+                        "schema": {
+                            "type": "string",
+                            "example": "Events retrieved"
+                        }
+                    }
+                }
+            }
+        },
+        "/bet/new": {
+            "post": {
+                "tags": ["Lottery APIs"],
+                "parameters": [
+                {
+                    "description": "Add new customer ",
+                    "name": "info",
+                    "in": "body",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "UserID":{
+                                "type": "string",
+                                "example": "6443a1e99c150ed9e52c5bdd"
+                            },
+                            "EventUID": {
+                                "type": "string",
+                                "example": "6448e27a01d112844eaeb46d"
+                            },
+                            "Amount": {
+                                "type": "int",
+                                "example": "1000"
+                            },
+                            "BetNumbers": {
+                                "type": "array",
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "example": [1,2,3]
+                            }
+                        }
+                    }
+                }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string",
+                    "example": "user info added successfully"
                         }
                     }
                 }
