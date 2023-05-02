@@ -2,6 +2,9 @@ package apis
 
 import (
 	//"net/http"
+	"regexp"
+	"strconv"
+	"time"
 
 	"github.com/ini8labs/lsdb"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -75,17 +78,17 @@ func requiredUserInfo(resp *lsdb.UserInfo) UserInformation {
 }
 
 func requiredEventInfo(resp []lsdb.LotteryEventInfo) []EventsInfo {
-	var respSlice []EventsInfo
+	var resultSlice []EventsInfo
 	for i := 0; i < len(resp); i++ {
 		var tempResp EventsInfo
-		tempResp.EventUID = resp[i].EventUID
+		tempResp.EventUID = primitiveToString(resp[i].EventUID)
 		tempResp.EventDate = resp[i].EventDate
 		tempResp.EventName = resp[i].Name
 		tempResp.EventType = resp[i].EventType
 
-		respSlice = append(respSlice, tempResp)
+		resultSlice = append(resultSlice, tempResp)
 	}
-	return respSlice
+	return resultSlice
 }
 
 func strToPrimitiveObjID(str string) (primitive.ObjectID, error) {
@@ -131,12 +134,82 @@ func requiredBetsByEventType(resp []lsdb.EventParticipantInfo) {
 	}
 }
 
-// func validatePhoneNumber(phone string) (int64, error) {
+func stringToPrimitive(s string) primitive.ObjectID {
+	var a, _ = primitive.ObjectIDFromHex(s)
+	return a
+}
 
-// 	phoneInt64, err := strconv.ParseInt(phone, 10, 64)
-// 	if err != nil {
-// 		return null, errInvalidPhoneNum
-// 	}
-// 	return phoneInt64, nil
-// 	// phone number shouldn;t stsrt from zero
+func convertTimeToPrimitive(date Date) primitive.DateTime {
+
+	d := time.Date(date.Year, time.Month(date.Month), date.Day, 0, 0, 0, 0, time.Local)
+
+	return primitive.NewDateTimeFromTime(d)
+
+}
+
+func convertPrimitiveToTime(date primitive.DateTime) Date {
+	t := date.Time()
+
+	return Date{
+		Day:   t.Day(),
+		Month: int(t.Month()),
+		Year:  t.Year(),
+	}
+}
+
+func primitiveToString(p primitive.ObjectID) string {
+	return p.Hex()
+}
+
+func initializeEventInfo(resp []lsdb.LotteryEventInfo) []EventsInfo {
+	var arr []EventsInfo
+
+	for i := 0; i < len(resp); i++ {
+		eventinfo := EventsInfo{
+			EventUID:  primitiveToString(resp[i].EventUID),
+			EventDate: resp[i].EventDate,
+			EventName: resp[i].Name,
+			EventType: resp[i].EventType,
+		}
+
+		arr = append(arr, eventinfo)
+	}
+	return arr
+}
+
+// func validateEventId(str string, resp []EventsInfo) bool {
+//     eventIdExist := true
+//     for i := 0; i < len(resp); i++ {
+//         if resp[i].EventUID == str {
+//             eventIdExist = true
+//             break
+//         }
+//         if resp[i].EventUID != str {
+//             eventIdExist = false
+//         }
+//     }
+//     return eventIdExist
 // }
+
+func validatePhoneNumberString(phone string) error {
+
+	pattern := `^[0-9]{10}$`
+
+	regex := regexp.MustCompile(pattern)
+
+	isValid := regex.MatchString(phone)
+	if !isValid {
+		return errIncorrectPhoneNo
+	}
+
+	return nil
+}
+
+func validatePhoneNumberInt(phone int64) error {
+	phoneString := strconv.FormatInt(phone, 10)
+
+	if err := validatePhoneNumberString(phoneString); err != nil {
+		return err
+	}
+	return nil
+}

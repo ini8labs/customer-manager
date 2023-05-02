@@ -2,20 +2,35 @@ package apis
 
 import (
 	// "errors"
-	// "strconv"
-	// "strings"
+	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/gin-gonic/gin"
 	// "github.com/ini8labs/lsdb"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// type EventsInfo struct {
+// 	EventUID  string `bson:"_id,omitempty"`
+// 	EventDate Date   `bson:"event_date,omitempty"`
+// 	EventName string `bson:"name,omitempty"`
+// 	EventType string `bson:"event_type,omitempty"`
+// }
+
 type EventsInfo struct {
-	EventUID  primitive.ObjectID `bson:"_id,omitempty"`
+	EventUID  string             `bson:"_id,omitempty"`
 	EventDate primitive.DateTime `bson:"event_date,omitempty"`
 	EventName string             `bson:"name,omitempty"`
 	EventType string             `bson:"event_type,omitempty"`
+}
+
+type Date struct {
+	Day   int `bson:"day,omitempty"`
+	Month int `bson:"month,omitempty"`
+	Year  int `bson:"year,omitempty"`
 }
 
 var eventInfo []EventsInfo
@@ -33,17 +48,43 @@ func (s Server) getAllEvents(c *gin.Context) {
 	c.JSON(http.StatusOK, eventInfo)
 }
 
-// func (s Server) GetEventsByDate(c *gin.Context) {
-// 	var eventdate EventDate
-// 	if err := c.ShouldBind(&eventdate); err != nil {
-// 		c.JSON(http.StatusBadRequest, "Bad Format")
-// 		return
+func (s Server) getEventInfoByDate(c *gin.Context) {
+	date := c.Param("date")
+
+	eventDate := strings.Split(date, "-")
+	intYear, _ := strconv.Atoi(eventDate[0])
+	intMonth, _ := strconv.Atoi(eventDate[1])
+	intDay, _ := strconv.Atoi(eventDate[2])
+
+	eventdate := Date{
+		Year:  intYear,
+		Month: intMonth,
+		Day:   intDay,
+	}
+
+	resp, err := s.Client.GetEventsByDate(convertTimeToPrimitive(eventdate))
+	if err != nil {
+		s.Logger.Error(err)
+		c.JSON(http.StatusBadRequest, errInvalidDate.Error())
+		return
+	}
+
+	fmt.Println(resp)
+	result := initializeEventInfo(resp)
+	c.JSON(http.StatusOK, result)
+}
+
+// func (s Server) getEventInfoByDate1(c *gin.Context) {
+// 	date := c.Param("date")
+// 	eventDate := strings.Split(date, "-")
+// 	intYear, _ := strconv.Atoi(eventDate[0])
+// 	intMonth, _ := strconv.Atoi(eventDate[1])
+// 	intDay, _ := strconv.Atoi(eventDate[2])
+
+// 	eventdate := Date{
+// 		Year:  intYear,
+// 		Month: intMonth,
+// 		Day:   intDay,
 // 	}
 
-// 	resp, err := s.Client.GetEventsByDate(eventdate.EventDate)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, "something is wrong with the server")
-// 		return
-// 	}
-// 	c.JSON(http.StatusOK, resp)
 // }

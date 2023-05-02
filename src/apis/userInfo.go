@@ -41,6 +41,12 @@ func (s Server) newUserInfo(c *gin.Context) {
 
 	userInfo.Name = newUserInfoFormat.Name
 	userInfo.Phone = newUserInfoFormat.Phone
+	if err := validatePhoneNumberInt(userInfo.Phone); err != nil {
+		s.Logger.Error(err)
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+
 	userInfo.GovID = newUserInfoFormat.GovID
 	userInfo.EMail = newUserInfoFormat.EMail
 
@@ -67,6 +73,14 @@ func (s Server) updateUserInfo(c *gin.Context) {
 	if err != nil {
 		s.Logger.Error(errInvalidUserID)
 		c.JSON(http.StatusBadRequest, errInvalidUserID.Error())
+	}
+
+	if userInfo.Key == "phone" {
+		if err := validatePhoneNumberString(userInfo.Value); err != nil {
+			s.Logger.Error(err)
+			c.JSON(http.StatusBadRequest, err.Error())
+			return
+		}
 	}
 
 	err1 := s.Client.UpdateUserInfo(userIDConv, userInfo.Key, userInfo.Value)

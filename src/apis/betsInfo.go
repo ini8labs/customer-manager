@@ -43,6 +43,8 @@ var eventsList = []string{"MS", "LT", "MW", "FT", "FB", "NW"}
 
 var eventParticipantInfo lsdb.EventParticipantInfo
 
+var respSlice []UserBetsInfoByEvent
+
 func (s Server) placeBets(c *gin.Context) {
 	var NewBetsFomat NewBetsFomat
 	if err := c.ShouldBind(&NewBetsFomat); err != nil {
@@ -156,9 +158,6 @@ func (s Server) deleteBets(c *gin.Context) {
 
 	c.JSON(http.StatusOK, "Bet Deleted Successfully")
 }
-
-// var respSlice []UserBetsInfoByEvent
-var respSlice []UserBetsInfoByEvent
 
 func (s Server) betsHistoryByEventType(c *gin.Context) {
 	eventType := c.Param("type")

@@ -31,6 +31,7 @@ var (
 	errInvalidID          error = errors.New("ID is incorrect")
 	errInvalidPhoneNum    error = errors.New("invalid phone number")
 	errIncorrectEventType error = errors.New("incorrect event type")
+	errInvalidDate        error = errors.New("invalid date")
 )
 
 type Server struct {
@@ -55,7 +56,7 @@ func NewServer(server Server) error {
 	r.PUT("/api/v1/user", server.updateUserInfo)
 	r.DELETE("/api/v1/user/:id", server.deleteUserInfoByID)
 	r.GET("/api/v1/event", server.getAllEvents)
-	// r.POST("/api/v1/event/eventdata_bydate", GetEventsByDate
+	r.GET("/api/v1/event/:date", server.getEventInfoByDate)
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	return r.Run(server.Addr)
