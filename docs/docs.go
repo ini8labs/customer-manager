@@ -16,16 +16,41 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/bet/delete/{betuid}": {
+        "/bet/{id}": {
+            "get": {
+                "tags": ["Lottery APIs"],
+                "parameters": [
+                    {
+                        "description": "enter a valid UserID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status ok",
+                        "schema": {
+                            "type": "string",
+                            "example": "Status ok"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "tags": ["Lottery APIs"],
                 "parameters": [
                     {
                         "description": "enter a valid BetUID",
-                        "name": "betuid",
+                        "name": "id",
                         "in": "path",
                         "required": true,
-                        "type": "string",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
@@ -38,37 +63,15 @@ const docTemplate = `{
                     }
                 }
             }
+            
         },
-        "/bet/user/{bets}": {
-            "get": {
-                "tags": ["Lottery APIs"],
-                "parameters": [
-                    {
-                        "description": "enter a valid UserID",
-                        "name": "bets",
-                        "in": "path",
-                        "required": true,
-                        "type": "string",
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Status ok",
-                        "schema": {
-                            "type": "string",
-                            "example": "Status ok"
-                        }
-                    }
-                }
-            }
-        },
-        "/bet/history/{eventuid}": {
+        "/bet/history/{id}": {
             "get": {
                 "tags": ["Lottery APIs"],
                 "parameters": [
                     {
                         "description": "enter a valid EventUID",
-                        "name": "eventuid",
+                        "name": "id",
                         "in": "path",
                         "required": true,
                         "type": "string",
@@ -85,13 +88,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/info/userinfo/{userid}": {
+        "/user/{id}": {
             "get": {
                 "tags": ["User Information APIs"],
                 "parameters": [
                     {
                         "description": "enter a valid UserID",
-                        "name": "userid",
+                        "name": "id",
                         "in": "path",
                         "required": true,
                         "type": "string",
@@ -106,15 +109,13 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/user/info/delete/{govid}": {
+            },
             "delete": {
                 "tags": ["User Information APIs"],
                 "parameters": [
                     {
                         "description": "enter a valid GovID",
-                        "name": "govid",
+                        "name": "id",
                         "in": "path",
                         "required": true,
                         "type": "string",
@@ -131,7 +132,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/event/eventdata": {
+        "/event": {
             "get": {
                 "tags": ["Events APIs"],
                 "responses": {
@@ -145,52 +146,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/bet/new": {
-            "post": {
-                "tags": ["Lottery APIs"],
-                "parameters": [
-                {
-                    "description": "Add new customer ",
-                    "name": "info",
-                    "in": "body",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                            "UserID":{
-                                "type": "string",
-                                "example": "6443a1e99c150ed9e52c5bdd"
-                            },
-                            "EventUID": {
-                                "type": "string",
-                                "example": "6448e27a01d112844eaeb46d"
-                            },
-                            "Amount": {
-                                "type": "int",
-                                "example": "1000"
-                            },
-                            "BetNumbers": {
-                                "type": "array",
-                                "items": {
-                                    "type": "integer"
-                                },
-                                "example": [1,2,3]
-                            }
-                        }
-                    }
-                }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string",
-                    "example": "user info added successfully"
-                        }
-                    }
-                }
-            }
-        },
-        "/user/info/new": {
+        "/user": {
             "post": {
                 "tags": ["User Information APIs"],
                 "parameters": [
@@ -230,9 +186,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/user/info/update": {
+            },
             "put": {
                 "tags": ["User Information APIs"],
                 "parameters": [
@@ -243,7 +197,7 @@ const docTemplate = `{
                     "schema": {
                         "type": "object",
                         "properties": {
-                            "UserID":{
+                            "UID":{
                                 "type": "string",
                                 "example": "644f3e829684b2aaba49a1e2"
                             },
@@ -270,7 +224,50 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/info/update": {
+        "/bet": {
+            "post": {
+                "tags": ["Lottery APIs"],
+                "parameters": [
+                {
+                    "description": "Add new bet ",
+                    "name": "info",
+                    "in": "body",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "UserID":{
+                                "type": "string",
+                                "example": "6443a1e99c150ed9e52c5bdd"
+                            },
+                            "EventUID": {
+                                "type": "string",
+                                "example": "6448e27a01d112844eaeb46d"
+                            },
+                            "Amount": {
+                                "type": "int",
+                                "example": "1000"
+                            },
+                            "BetNumbers": {
+                                "type": "array",
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "example": [1,2,3]
+                            }
+                        }
+                    }
+                }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string",
+                    "example": "user info added successfully"
+                        }
+                    }
+                }
+            },
             "put": {
                 "tags": ["Lottery APIs"],
                 "parameters": [

@@ -12,29 +12,6 @@ func validateID(str string) (primitive.ObjectID, error) {
 	return ObjectID, err
 }
 
-// func validateBetnumbers(str string) ([]int, error) {
-// 	split := strings.Split(str, ",")
-// 	strToInt := []int{}
-
-// 	if len(split) < 1 {
-// 		return nil, errMinNumbers
-// 	}
-
-// 	if len(split) > 5 {
-// 		return nil, errMaxNumbers
-// 	}
-
-// 	for _, i := range split {
-// 		j, err := strconv.Atoi(i)
-// 		if err != nil || j < 1 || j > 90 {
-// 			return nil, errNumberNotAllowed
-// 		}
-
-// 		strToInt = append(strToInt, j)
-// 	}
-// 	return strToInt, nil
-// }
-
 func validateBetnumbers(nums []int) ([]int, error) {
 	if len(nums) < 1 {
 		return nil, errMinNumbers
@@ -80,7 +57,7 @@ func requiredInfoUserBets(resp []lsdb.EventParticipantInfo) []UserBetsInfo {
 	var respSlice []UserBetsInfo
 	for i := 0; i < len(resp); i++ {
 		var tempResp UserBetsInfo
-		tempResp.BetUID = resp[i].BetUID
+		tempResp.BetUID = resp[i].BetUID.Hex()
 		tempResp.Amount = resp[i].ParticipantInfo.Amount
 		tempResp.BetNumbers = resp[i].ParticipantInfo.BetNumbers
 
@@ -114,7 +91,7 @@ func requiredEventInfo(resp []lsdb.LotteryEventInfo) []EventsInfo {
 func strToPrimitiveObjID(str string) (primitive.ObjectID, error) {
 	eventUIDConv, err := primitive.ObjectIDFromHex(str)
 	if err != nil {
-		return primitive.NilObjectID, errInvalidEventID
+		return primitive.NilObjectID, errInvalidID
 	}
 
 	return eventUIDConv, nil

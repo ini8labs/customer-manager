@@ -132,9 +132,9 @@ func (s Server) updateBets(c *gin.Context) {
 }
 
 func (s Server) deleteBets(c *gin.Context) {
-	betUID := c.Param("betuid")
+	betUID := c.Param("id")
 
-	bettUIDConv, err := primitive.ObjectIDFromHex(betUID)
+	bettUIDConv, err := validateID(betUID)
 	if err != nil {
 		s.Logger.Error("Bad BetUID")
 		c.JSON(http.StatusBadRequest, "Bad format")
@@ -172,7 +172,7 @@ func (s Server) betsHistorybyEvent(c *gin.Context) {
 }
 
 func (s Server) userBets(c *gin.Context) {
-	userID := c.Param("bets")
+	userID := c.Param("id")
 
 	userIDConv, err := validateID(userID)
 	if err != nil {

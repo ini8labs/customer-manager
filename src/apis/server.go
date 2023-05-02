@@ -28,6 +28,7 @@ var (
 	errInvalidEventID    error = errors.New("event ID incorrect")
 	errInvalidUserID     error = errors.New("invalid user ID")
 	errInvalidBetUID     error = errors.New("Bet UID is incorrect")
+	errInvalidID         error = errors.New("ID is incorrect")
 	errInvalidPhoneNum   error = errors.New("invalid phone number")
 )
 
@@ -43,17 +44,16 @@ func NewServer(server Server) error {
 	docs.SwaggerInfo.BasePath = "/api/v1"
 
 	// API end points
-	r.POST("/api/v1/bet/new", server.placeBets)
-	r.PUT("/api/v1/bet/update", server.updateBets)
-	r.GET("/api/v1/bet/user/:bets", server.userBets)
-	r.DELETE("/api/v1/bet/delete/:betuid", server.deleteBets)
+	r.POST("/api/v1/bet", server.placeBets)
+	r.PUT("/api/v1/bet", server.updateBets)
+	r.GET("/api/v1/bet/:id", server.userBets)
+	r.DELETE("/api/v1/bet/:id", server.deleteBets)
 	r.GET("/api/v1/bet/history/:eventuid", server.betsHistorybyEvent)
-	r.PUT("/api/v1/bet/update", server.updateBets)
-	r.GET("/api/v1/user/info/userinfo/:userid", server.getUserInfoByID)
-	r.POST("/api/v1/user/info/new", server.newUserInfo)
-	r.PUT("/api/v1/user/info/update", server.updateUserInfo) // undesired behaviour
-	r.DELETE("/api/v1/user/info/delete/:govid", server.deleteUserInfoByID)
-	r.GET("/api/v1/event/eventdata", server.getAllEvents)
+	r.GET("/api/v1/user/:id", server.getUserInfoByID)
+	r.POST("/api/v1/user", server.newUserInfo)
+	r.PUT("/api/v1/user", server.updateUserInfo) // undesired behaviour
+	r.DELETE("/api/v1/user/:id", server.deleteUserInfoByID)
+	r.GET("/api/v1/event", server.getAllEvents)
 	// r.POST("/api/v1/event/eventdata_bydate", GetEventsByDate
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

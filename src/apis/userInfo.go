@@ -14,7 +14,7 @@ import (
 type UserInformation struct {
 	Name  string `bson:"name,omitempty"`
 	Phone int64  `bson:"phone,omitempty"`
-	EMail string `bson:"email,omitempty"`
+	EMail string `bson:"e_mail,omitempty"`
 }
 
 type NewUserInfoFormat struct {
@@ -23,9 +23,9 @@ type NewUserInfoFormat struct {
 }
 
 type UpdateInfoStruct struct {
-	UserID string `bson:"userid,omitempty"`
-	Key    string `bson:"key,omitempty"`
-	Value  string `bson:"value,omitempty"`
+	UID   string `bson:"_id,omitempty"`
+	Key   string `bson:"key,omitempty"`
+	Value string `bson:"value,omitempty"`
 }
 
 var respUserInfo UserInformation
@@ -39,13 +39,10 @@ func (s Server) newUserInfo(c *gin.Context) {
 		return
 	}
 
-	// convert phone from string to int64
-	// phoneInt64, err := strconv.ParseInt(newUserInfoFormat.Phone, 10, 64)
-
 	userInfo.Name = newUserInfoFormat.Name
 	userInfo.Phone = newUserInfoFormat.Phone
 	userInfo.GovID = newUserInfoFormat.GovID
-	userInfo.EMail = newUserInfoFormat.GovID
+	userInfo.EMail = newUserInfoFormat.EMail
 
 	err := s.Client.AddNewUserInfo(userInfo)
 	if err != nil {
@@ -61,12 +58,12 @@ func (s Server) newUserInfo(c *gin.Context) {
 // not running as expecetd
 func (s Server) updateUserInfo(c *gin.Context) {
 	var userInfo UpdateInfoStruct
-	if err := c.BindJSON(&userInfo); err != nil {
+	if err := c.ShouldBind(&userInfo); err != nil {
 		c.JSON(http.StatusBadRequest, "Bad Format")
 		return
 	}
 
-	userIDConv, err := validateID(userInfo.UserID)
+	userIDConv, err := validateID(userInfo.UID)
 	if err != nil {
 		s.Logger.Error(errInvalidUserID)
 		c.JSON(http.StatusBadRequest, errInvalidUserID.Error())
@@ -82,7 +79,7 @@ func (s Server) updateUserInfo(c *gin.Context) {
 }
 
 func (s Server) getUserInfoByID(c *gin.Context) {
-	userID := c.Param("userid")
+	userID := c.Param("id")
 
 	userIDConv, err := validateID(userID)
 	if err != nil {
@@ -106,7 +103,7 @@ func (s Server) getUserInfoByID(c *gin.Context) {
 
 // not running as expecetd
 func (s Server) deleteUserInfoByID(c *gin.Context) {
-	userInfo.GovID = c.Param("govid")
+	userInfo.GovID = c.Param("id")
 
 	err := s.Client.DeleteUserInfo(userInfo)
 	if err != nil {
