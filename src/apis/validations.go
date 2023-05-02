@@ -82,7 +82,7 @@ func requiredEventInfo(resp []lsdb.LotteryEventInfo) []EventsInfo {
 	for i := 0; i < len(resp); i++ {
 		var tempResp EventsInfo
 		tempResp.EventUID = primitiveToString(resp[i].EventUID)
-		tempResp.EventDate = resp[i].EventDate
+		tempResp.EventDate = convertPrimitiveToTime(resp[i].EventDate)
 		tempResp.EventName = resp[i].Name
 		tempResp.EventType = resp[i].EventType
 
@@ -167,7 +167,7 @@ func initializeEventInfo(resp []lsdb.LotteryEventInfo) []EventsInfo {
 	for i := 0; i < len(resp); i++ {
 		eventinfo := EventsInfo{
 			EventUID:  primitiveToString(resp[i].EventUID),
-			EventDate: resp[i].EventDate,
+			EventDate: convertPrimitiveToTime(resp[i].EventDate),
 			EventName: resp[i].Name,
 			EventType: resp[i].EventType,
 		}

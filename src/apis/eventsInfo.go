@@ -7,8 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
-
 	"github.com/gin-gonic/gin"
 	// "github.com/ini8labs/lsdb"
 )
@@ -21,10 +19,10 @@ import (
 // }
 
 type EventsInfo struct {
-	EventUID  string             `bson:"_id,omitempty"`
-	EventDate primitive.DateTime `bson:"event_date,omitempty"`
-	EventName string             `bson:"name,omitempty"`
-	EventType string             `bson:"event_type,omitempty"`
+	EventUID  string `bson:"_id,omitempty"`
+	EventDate Date   `bson:"event_date,omitempty"`
+	EventName string `bson:"name,omitempty"`
+	EventType string `bson:"event_type,omitempty"`
 }
 
 type Date struct {
@@ -61,6 +59,8 @@ func (s Server) getEventInfoByDate(c *gin.Context) {
 		Month: intMonth,
 		Day:   intDay,
 	}
+
+	fmt.Println(eventDate)
 
 	resp, err := s.Client.GetEventsByDate(convertTimeToPrimitive(eventdate))
 	if err != nil {
