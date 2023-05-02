@@ -77,7 +77,7 @@ github.com/goccy/go-json/internal/runtime
 # github.com/golang/snappy v0.0.1
 ## explicit
 github.com/golang/snappy
-# github.com/ini8labs/lsdb v0.0.6
+# github.com/ini8labs/lsdb v0.0.7
 ## explicit; go 1.19
 github.com/ini8labs/lsdb
 # github.com/josharian/intern v1.0.0

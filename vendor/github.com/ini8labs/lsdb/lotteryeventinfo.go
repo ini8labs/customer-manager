@@ -3,10 +3,11 @@ package lsdb
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"time"
 )
 
 type LotteryEventInfo struct {
@@ -14,7 +15,7 @@ type LotteryEventInfo struct {
 	EventDate     primitive.DateTime `bson:"event_date,omitempty"`
 	Name          string             `bson:"name,omitempty"`
 	EventType     string             `bson:"event_type,omitempty"`
-	WinningNumber int                `bson:"winning_number,omitempty"`
+	WinningNumber []int              `bson:"winning_number,omitempty"`
 	CreatedAt     primitive.DateTime `bson:"created_at,omitempty"`
 	UpdatedAt     primitive.DateTime `bson:"updated_at,omitempty"`
 }

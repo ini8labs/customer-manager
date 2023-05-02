@@ -97,6 +97,40 @@ func strToPrimitiveObjID(str string) (primitive.ObjectID, error) {
 	return eventUIDConv, nil
 }
 
+func validateEventType(s string) error {
+	for i := 0; i < len(eventsList); i++ {
+		if eventsList[i] == s {
+			return nil
+		}
+	}
+	return errIncorrectEventType
+}
+
+// func getParticipantsInfoByEventIDLoop(resp []lsdb.LotteryEventInfo) {
+// 	for i, _ := range resp {
+
+// 		EventUID := resp[i].EventUID
+// 		resp2, err := server.Client.GetParticipantsInfoByEventID(EventUID)
+// 		if err != nil {
+// 			Logrus.Error(err.Error())
+// 			http.JSON(http.StatusBadRequest, err.Error())
+// 			return
+// 		}
+
+// 		requiredBetsByEventType(resp2)
+
+// 	}
+// }
+
+func requiredBetsByEventType(resp []lsdb.EventParticipantInfo) {
+	for i, _ := range resp {
+		var temp UserBetsInfoByEvent
+		temp.Amount = resp[i].Amount
+		temp.BetNumbers = resp[i].BetNumbers
+		respSlice = append(respSlice, temp)
+	}
+}
+
 // func validatePhoneNumber(phone string) (int64, error) {
 
 // 	phoneInt64, err := strconv.ParseInt(phone, 10, 64)

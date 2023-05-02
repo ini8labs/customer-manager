@@ -25,7 +25,12 @@ type UserBetsInfo struct {
 	Amount     int    `bson:"amount,omitempty"`
 }
 
-type newBetsFormat struct {
+type UserBetsInfoByEvent struct {
+	BetNumbers []int `bson:"bet_numbers,omitempty"`
+	Amount     int   `bson:"amount,omitempty"`
+}
+
+type NewBetsFomat struct {
 	UserID     string `bson:"user_id,omitempty"`
 	EventUID   string `bson:"event_id,omitempty"`
 	BetNumbers []int  `bson:"bet_numbers,omitempty"`
@@ -34,34 +39,36 @@ type newBetsFormat struct {
 
 var respConv []UserBetsInfo
 
+var eventsList = []string{"MS", "LT", "MW", "FT", "FB", "NW"}
+
 var eventParticipantInfo lsdb.EventParticipantInfo
 
 func (s Server) placeBets(c *gin.Context) {
-	var newBetsFormat newBetsFormat
-	if err := c.ShouldBind(&newBetsFormat); err != nil {
+	var NewBetsFomat NewBetsFomat
+	if err := c.ShouldBind(&NewBetsFomat); err != nil {
 		s.Logger.Error("bad format")
 		c.JSON(http.StatusBadRequest, "bad Format")
 		return
 	}
 
-	userIDValidated, err := validateID(string(newBetsFormat.UserID))
+	userIDValidated, err := validateID(string(NewBetsFomat.UserID))
 	if err != nil {
 		s.Logger.Error(errInvalidUserID)
 		c.JSON(http.StatusBadRequest, errInvalidUserID)
 		return
 	}
 
-	eventUIDValidated, err := validateID(newBetsFormat.EventUID)
+	eventUIDValidated, err := validateID(NewBetsFomat.EventUID)
 	if err != nil {
 		s.Logger.Error(errInvalidEventID)
 		c.JSON(http.StatusBadRequest, errInvalidEventID)
 		return
 	}
 
-	amountValidated, err := validateAmount(newBetsFormat.Amount)
+	amountValidated, err := validateAmount(NewBetsFomat.Amount)
 	errHandle(err)
 
-	betNumbersvalidated, err := validateBetnumbers(newBetsFormat.BetNumbers)
+	betNumbersvalidated, err := validateBetnumbers(NewBetsFomat.BetNumbers)
 	if err != nil {
 		s.Logger.Error(err)
 		c.JSON(http.StatusBadRequest, err)
@@ -150,25 +157,43 @@ func (s Server) deleteBets(c *gin.Context) {
 	c.JSON(http.StatusOK, "Bet Deleted Successfully")
 }
 
-func (s Server) betsHistorybyEvent(c *gin.Context) {
-	eventUID := c.Param("eventuid")
+// var respSlice []UserBetsInfoByEvent
+var respSlice []UserBetsInfoByEvent
 
-	eventUIDConv, err := validateID(eventUID)
-	if err != nil {
-		s.Logger.Errorf("error validateBetnumbersing string to HEX: %s", err.Error())
-		c.JSON(http.StatusBadRequest, errInvalidEventID.Error())
+func (s Server) betsHistoryByEventType(c *gin.Context) {
+	eventType := c.Param("type")
+
+	if err := validateEventType(eventType); err != nil {
+		s.Logger.Error(err)
+		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
 
-	resp, err := s.Client.GetParticipantsInfoByEventID(eventUIDConv)
+	resp1, err := s.Client.GetEventsByType(eventType)
 	if err != nil {
 		s.Logger.Error(err.Error())
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
 
-	respConv = requiredInfoUserBets(resp)
-	c.JSON(http.StatusOK, respConv)
+	for i, _ := range resp1 {
+
+		EventUID := resp1[i].EventUID
+		resp2, err := s.Client.GetParticipantsInfoByEventID(EventUID)
+		if err != nil {
+			s.Logger.Error(err.Error())
+			c.JSON(http.StatusBadRequest, err.Error())
+			return
+		}
+
+		requiredBetsByEventType(resp2)
+
+	}
+
+	// getParticipantsInfoByEventIDLoop(resp1)
+	c.JSON(http.StatusOK, respSlice)
+	respSlice = []UserBetsInfoByEvent{}
+
 }
 
 func (s Server) userBets(c *gin.Context) {
@@ -202,3 +227,5 @@ func errHandle(err error) {
 		return
 	}
 }
+
+// /user/{userid}/bets
