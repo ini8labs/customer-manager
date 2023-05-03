@@ -3,6 +3,7 @@ package apis
 import (
 	//"net/http"
 
+	"fmt"
 	"regexp"
 	"strconv"
 	"time"
@@ -142,8 +143,9 @@ func stringToPrimitive(s string) primitive.ObjectID {
 
 func convertTimeToPrimitive(date Date) primitive.DateTime {
 
-	d := time.Date(date.Year, time.Month(date.Month), date.Day, 0, 0, 0, 0, time.Local)
+	d := time.Date(date.Year, time.Month(date.Month), date.Day, 0, 0, 0, 0, time.UTC)
 	dNew := primitive.NewDateTimeFromTime(d)
+	fmt.Println("NEW DATE:", d)
 	return dNew
 }
 
@@ -177,19 +179,24 @@ func initializeEventInfo(resp []lsdb.LotteryEventInfo) []EventsInfo {
 	return arr
 }
 
-func validateEventId(str string, resp []EventsInfo) bool {
-	eventIdExist := true
-	for i := 0; i < len(resp); i++ {
-		if resp[i].EventUID == str {
-			eventIdExist = true
-			break
-		}
-		if resp[i].EventUID != str {
-			eventIdExist = false
-		}
-	}
-	return eventIdExist
-}
+// func validateEventId(str string ) (primitive.ObjectID, bool) {
+// 	resp, err := s.Client.GetAllEvents()
+// 	if err != nil {
+
+// 		return
+// 	}
+// 	eventIdExist := true
+// 	for i := 0; i < len(resp); i++ {
+// 		if resp[i].EventUID == str {
+// 			eventIdExist = true
+// 			break
+// 		}
+// 		if resp[i].EventUID != str {
+// 			eventIdExist = false
+// 		}
+// 	}
+// 	return eventIdExist
+// }
 
 func validatePhoneNumberString(phone string) error {
 
