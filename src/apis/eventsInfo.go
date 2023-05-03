@@ -4,8 +4,7 @@ import (
 	// "errors"
 	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	// "github.com/ini8labs/lsdb"
@@ -53,22 +52,7 @@ func (s Server) getAllEvents(c *gin.Context) {
 func (s Server) getEventInfoByDate(c *gin.Context) {
 	date := c.Query("date")
 
-	eventDate := strings.Split(date, "-")
-	intYear, _ := strconv.Atoi(eventDate[0])
-	intMonth, _ := strconv.Atoi(eventDate[1])
-	intDay, _ := strconv.Atoi(eventDate[2])
-	fmt.Println(eventDate)
-	eventDateInfo := Date{
-		Year:  intYear,
-		Month: intMonth,
-		Day:   intDay,
-	}
-
-	fmt.Println(eventDateInfo)
-	// var temp = lsdb.LotteryEventInfo{}
-	// fmt.Println(convertTimeToPrimitive(eventDateInfo))
-	// temp.EventDate = convertTimeToPrimitive(eventDateInfo)
-	// fmt.Println(temp.EventDate)
+	eventDateInfo := stringToDateStruct(date)
 
 	resp, err := s.Client.GetEventsByDate(convertTimeToPrimitive(eventDateInfo))
 	if err != nil {
@@ -77,7 +61,22 @@ func (s Server) getEventInfoByDate(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(resp)
 	result := initializeEventInfo(resp)
 	c.JSON(http.StatusOK, result)
+}
+
+func (s Server) eventsAvailableToday(c *gin.Context) []EventsInfo {
+	currentDate := time.Now().Format("2006-01-02")
+
+	eventDateInfo := stringToDateStruct(currentDate)
+
+	resp, err := s.Client.GetEventsByDate(convertTimeToPrimitive(eventDateInfo))
+	if err != nil {
+		s.Logger.Error(err)
+		c.JSON(http.StatusBadRequest, errInvalidDate.Error())
+		return nil
+	}
+
+	result := initializeEventInfo(resp)
+	return result
 }

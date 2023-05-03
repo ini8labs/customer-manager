@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ini8labs/lsdb"
@@ -180,11 +181,10 @@ func initializeEventInfo(resp []lsdb.LotteryEventInfo) []EventsInfo {
 }
 
 // func validateEventId(str string ) (primitive.ObjectID, bool) {
-// 	resp, err := s.Client.GetAllEvents()
-// 	if err != nil {
+// 	var s1 Server
+// 	var c *gin.Context
 
-// 		return
-// 	}
+// 	resp, err := s1.Client.GetEventByDateRange(convertTimeToPrimitive(eventDateInfo))
 // 	eventIdExist := true
 // 	for i := 0; i < len(resp); i++ {
 // 		if resp[i].EventUID == str {
@@ -219,4 +219,19 @@ func validatePhoneNumberInt(phone int64) error {
 		return err
 	}
 	return nil
+}
+
+func stringToDateStruct(str string) Date {
+	eventDate := strings.Split(str, "-")
+	intYear, _ := strconv.Atoi(eventDate[0])
+	intMonth, _ := strconv.Atoi(eventDate[1])
+	intDay, _ := strconv.Atoi(eventDate[2])
+
+	eventDateInfo := Date{
+		Year:  intYear,
+		Month: intMonth,
+		Day:   intDay,
+	}
+
+	return eventDateInfo
 }
