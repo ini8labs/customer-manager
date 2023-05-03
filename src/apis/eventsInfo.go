@@ -65,7 +65,21 @@ func (s Server) getEventInfoByDate(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-func (s Server) eventsAvailable(c *gin.Context) {
+func (s Server) getEventInfoByDateRange(startDate, endDate string) ([]EventsInfo, error) {
+	startRangeDate := stringToDateStruct(startDate)
+
+	endRangeDate := stringToDateStruct(endDate)
+
+	resp, err := s.Client.GetEventByDateRange(convertTimeToPrimitive(startRangeDate), convertTimeToPrimitive(endRangeDate))
+	if err != nil {
+		return []EventsInfo{}, err
+	}
+
+	result := initializeEventInfo(resp)
+	return result, nil
+}
+
+func (s Server) eventsAvailable() ([]EventsInfo, error) {
 
 	startDate := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 
@@ -76,23 +90,7 @@ func (s Server) eventsAvailable(c *gin.Context) {
 
 	resp, err := s.Client.GetEventByDateRange(convertTimeToPrimitive(eventStartDateInfo), convertTimeToPrimitive(eventEndDateInfo))
 	if err != nil {
-		s.Logger.Error(err)
-		c.JSON(http.StatusBadRequest, errInvalidDate.Error())
-		return
-	}
-
-	result := initializeEventInfo(resp)
-	c.JSON(http.StatusOK, result)
-}
-
-func (s Server) getEventInfoByDateRange(startDate, endDate string) ([]EventsInfo, error) {
-	startRangeDate := stringToDateStruct(startDate)
-
-	endRangeDate := stringToDateStruct(endDate)
-
-	resp, err := s.Client.GetEventByDateRange(convertTimeToPrimitive(startRangeDate), convertTimeToPrimitive(endRangeDate))
-	if err != nil {
-		return []EventsInfo{}, err
+		return []EventsInfo{}, errInvalidDate
 	}
 
 	result := initializeEventInfo(resp)

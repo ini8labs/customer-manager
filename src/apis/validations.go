@@ -180,23 +180,14 @@ func initializeEventInfo(resp []lsdb.LotteryEventInfo) []EventsInfo {
 	return arr
 }
 
-// func validateEventId(str string ) (primitive.ObjectID, bool) {
-// 	var s1 Server
-// 	var c *gin.Context
-
-// 	resp, err := s1.Client.GetEventByDateRange(convertTimeToPrimitive(eventDateInfo))
-// 	eventIdExist := true
-// 	for i := 0; i < len(resp); i++ {
-// 		if resp[i].EventUID == str {
-// 			eventIdExist = true
-// 			break
-// 		}
-// 		if resp[i].EventUID != str {
-// 			eventIdExist = false
-// 		}
-// 	}
-// 	return eventIdExist
-// }
+func validateEventID(str string, resp []EventsInfo) (primitive.ObjectID, error) {
+	for i, _ := range resp {
+		if resp[i].EventUID == str {
+			return stringToPrimitive(str), nil
+		}
+	}
+	return primitive.NilObjectID, errInvalidEventID
+}
 
 func validatePhoneNumberString(phone string) error {
 

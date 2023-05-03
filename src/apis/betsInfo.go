@@ -60,10 +60,17 @@ func (s Server) placeBets(c *gin.Context) {
 		return
 	}
 
-	eventUIDValidated, err := validateID(NewBetsFomat.EventUID)
+	resp, err := s.eventsAvailable()
 	if err != nil {
-		s.Logger.Error(errInvalidEventID)
-		c.JSON(http.StatusBadRequest, errInvalidEventID)
+		s.Logger.Error(err)
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	eventUIDValidated, err := validateEventID(NewBetsFomat.EventUID, resp)
+	if err != nil {
+		s.Logger.Error(err)
+		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
 
