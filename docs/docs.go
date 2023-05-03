@@ -42,7 +42,16 @@ const docTemplate = `{
             },
             "delete": {
                 "tags": ["Lottery APIs"],
-                "parameters": [
+                "parameters": [{
+                    "description": "enter UserID",
+                            "name": "userid",
+                            "in": "query",
+                            "required": true,
+                            "schema": {
+                                "type": "string",
+                                "example" : "64457b80630b6fef47225939"
+                            }
+                    },
                     {
                         "description": "enter a valid BetUID",
                         "name": "id",
@@ -296,7 +305,16 @@ const docTemplate = `{
             },
             "put": {
                 "tags": ["Lottery APIs"],
-                "parameters": [
+                "parameters": [{
+                        "description": "enter UserID",
+                                "name": "userid",
+                                "in": "query",
+                                "required": true,
+                                "schema": {
+                                    "type": "string",
+                                    "example" : "64457b80630b6fef47225939"
+                                }
+                        },
                 {
                     "description": "Update user bet",
                     "name": "info",
@@ -321,7 +339,7 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
+                }       
                 ],
                 "responses": {
                     "200": {

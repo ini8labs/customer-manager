@@ -2,7 +2,7 @@ package apis
 
 import (
 	// "errors"
-	"fmt"
+
 	"net/http"
 	"time"
 
@@ -41,11 +41,7 @@ func (s Server) getAllEvents(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(resp[0].EventDate)
 	eventInfo = requiredEventInfo(resp)
-	fmt.Println("==================")
-	fmt.Println(eventInfo[0].EventDate)
-	fmt.Println("==================")
 	c.JSON(http.StatusOK, eventInfo)
 }
 

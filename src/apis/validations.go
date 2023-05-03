@@ -189,6 +189,15 @@ func validateEventID(str string, resp []EventsInfo) (primitive.ObjectID, error) 
 	return primitive.NilObjectID, errInvalidEventID
 }
 
+func validateBetUID(str string, resp []UserBetsInfo) (primitive.ObjectID, error) {
+	for i, _ := range resp {
+		if resp[i].BetUID == str {
+			return stringToPrimitive(str), nil
+		}
+	}
+	return primitive.NilObjectID, errInvalidBetUID
+}
+
 func validatePhoneNumberString(phone string) error {
 
 	pattern := `^[0-9]{10}$`

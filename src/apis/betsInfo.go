@@ -108,13 +108,16 @@ func (s Server) placeBets(c *gin.Context) {
 
 func (s Server) updateBets(c *gin.Context) {
 	var userBetsInfo UserBetsInfo
+	userID := c.Query("userid")
+
 	if err := c.ShouldBind(&userBetsInfo); err != nil {
 		s.Logger.Error("bad format")
 		c.JSON(http.StatusBadRequest, "bad Format")
 		return
 	}
 
-	betUIDValidated, err := validateID(userBetsInfo.BetUID)
+	resp, err := s.userBetsResp(userID)
+	betUIDValidated, err := validateBetUID(userBetsInfo.BetUID, resp)
 	if err != nil {
 		s.Logger.Error(err)
 		c.JSON(http.StatusBadRequest, errInvalidBetUID.Error())
@@ -149,11 +152,13 @@ func (s Server) updateBets(c *gin.Context) {
 
 func (s Server) deleteBets(c *gin.Context) {
 	betUID := c.Param("id")
+	userID := c.Query("userid")
 
-	bettUIDConv, err := validateID(betUID)
+	resp, _ := s.userBetsResp(userID)
+	bettUIDConv, err := validateBetUID(betUID, resp)
 	if err != nil {
-		s.Logger.Error("Bad BetUID")
-		c.JSON(http.StatusBadRequest, "Bad format")
+		s.Logger.Error(err)
+		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -222,6 +227,19 @@ func (s Server) userBets(c *gin.Context) {
 
 	respConv = requiredInfoUserBets(resp)
 	c.JSON(http.StatusOK, respConv)
+}
+
+func (s Server) userBetsResp(str string) ([]UserBetsInfo, error) {
+
+	userIDConv, _ := validateID(str)
+
+	resp, err := s.Client.GetUserBets(userIDConv)
+	if err != nil {
+		return []UserBetsInfo{}, err
+	}
+
+	respConv = requiredInfoUserBets(resp)
+	return respConv, nil
 }
 
 func errHandle(err error) {
