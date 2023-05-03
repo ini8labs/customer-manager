@@ -115,7 +115,6 @@ func (s Server) getUserInfoByID(c *gin.Context) {
 	fmt.Println(respUserInfo)
 }
 
-// not running as expecetd
 func (s Server) deleteUserInfoByID(c *gin.Context) {
 	userInfo.GovID = c.Param("id")
 
