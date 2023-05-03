@@ -146,6 +146,32 @@ const docTemplate = `{
                 }
             }
         },
+        "/event/info":{
+            "get": {
+                "tags": ["Events APIs"],
+                "parameters": [
+                    {
+                        "description": "enter a date",
+                        "name": "date",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example" : "2023-05-02"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Event information retrieved successfully",
+                        "schema": {
+                            "type": "string",
+                            "example": "Event information retrieved successfully"
+                        }
+                    }
+                }
+            }
+        },
         "/user": {
             "post": {
                 "tags": ["User Information APIs"],

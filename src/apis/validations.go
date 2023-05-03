@@ -2,6 +2,7 @@ package apis
 
 import (
 	//"net/http"
+
 	"regexp"
 	"strconv"
 	"time"
@@ -142,9 +143,8 @@ func stringToPrimitive(s string) primitive.ObjectID {
 func convertTimeToPrimitive(date Date) primitive.DateTime {
 
 	d := time.Date(date.Year, time.Month(date.Month), date.Day, 0, 0, 0, 0, time.Local)
-
-	return primitive.NewDateTimeFromTime(d)
-
+	dNew := primitive.NewDateTimeFromTime(d)
+	return dNew
 }
 
 func convertPrimitiveToTime(date primitive.DateTime) Date {
@@ -177,19 +177,19 @@ func initializeEventInfo(resp []lsdb.LotteryEventInfo) []EventsInfo {
 	return arr
 }
 
-// func validateEventId(str string, resp []EventsInfo) bool {
-//     eventIdExist := true
-//     for i := 0; i < len(resp); i++ {
-//         if resp[i].EventUID == str {
-//             eventIdExist = true
-//             break
-//         }
-//         if resp[i].EventUID != str {
-//             eventIdExist = false
-//         }
-//     }
-//     return eventIdExist
-// }
+func validateEventId(str string, resp []EventsInfo) bool {
+	eventIdExist := true
+	for i := 0; i < len(resp); i++ {
+		if resp[i].EventUID == str {
+			eventIdExist = true
+			break
+		}
+		if resp[i].EventUID != str {
+			eventIdExist = false
+		}
+	}
+	return eventIdExist
+}
 
 func validatePhoneNumberString(phone string) error {
 
