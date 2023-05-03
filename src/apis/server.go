@@ -32,6 +32,7 @@ var (
 	errInvalidPhoneNum    error = errors.New("invalid phone number")
 	errIncorrectEventType error = errors.New("incorrect event type")
 	errInvalidDate        error = errors.New("invalid date")
+	errInvaildGovID       error = errors.New("invalid government ID")
 )
 
 type Server struct {

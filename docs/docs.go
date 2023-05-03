@@ -16,13 +16,13 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/bet/{id}": {
+        "/bet/{userid}": {
             "get": {
                 "tags": ["Lottery APIs"],
                 "parameters": [
                     {
                         "description": "enter a valid UserID",
-                        "name": "id",
+                        "name": "userid",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -39,7 +39,9 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
+            }
+        },
+        "/bet/{betuid}": {
             "delete": {
                 "tags": ["Lottery APIs"],
                 "parameters": [{
@@ -54,7 +56,7 @@ const docTemplate = `{
                     },
                     {
                         "description": "enter a valid BetUID",
-                        "name": "id",
+                        "name": "betuid",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -72,7 +74,6 @@ const docTemplate = `{
                     }
                 }
             }
-            
         },
         "/bet/history/{id}": {
             "get": {
@@ -97,13 +98,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/{id}": {
+        "/user/{userid}": {
             "get": {
                 "tags": ["User Information APIs"],
                 "parameters": [
                     {
                         "description": "enter a valid UserID",
-                        "name": "id",
+                        "name": "userid",
                         "in": "path",
                         "required": true,
                         "type": "string",
@@ -118,13 +119,15 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
+            }
+        },
+        "/user/{govid}": {
             "delete": {
                 "tags": ["User Information APIs"],
                 "parameters": [
                     {
                         "description": "enter a valid GovID",
-                        "name": "id",
+                        "name": "govid",
                         "in": "path",
                         "required": true,
                         "type": "string",

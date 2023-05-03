@@ -40,18 +40,31 @@ func (s Server) newUserInfo(c *gin.Context) {
 	}
 
 	userInfo.Name = newUserInfoFormat.Name
-	userInfo.Phone = newUserInfoFormat.Phone
-	if err := validatePhoneNumberInt(userInfo.Phone); err != nil {
+
+	if err := validatePhoneNumberInt(newUserInfoFormat.Phone); err != nil {
 		s.Logger.Error(err)
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
-
+	userInfo.Phone = newUserInfoFormat.Phone
+	var validate bool = true
+	validate, err := s.userInfoByGovIDResp(newUserInfoFormat.GovID)
+	// if err := s.userInfoByGovIDResp(newUserInfoFormat.GovID); err != nil {
+	// 	s.Logger.Error(err)
+	// 	c.JSON(http.StatusBadRequest, err.Error())
+	// 	return
+	// }
+	if validate == false {
+		c.JSON(http.StatusBadRequest, err.Error())
+		s.Logger.Error(err.Error())
+		return
+	}
 	userInfo.GovID = newUserInfoFormat.GovID
+
 	userInfo.EMail = newUserInfoFormat.EMail
 
-	err := s.Client.AddNewUserInfo(userInfo)
-	if err != nil {
+	err1 := s.Client.AddNewUserInfo(userInfo)
+	if err1 != nil {
 		s.Logger.Error("internal server error")
 		c.JSON(http.StatusBadRequest, "something went wrong with the server")
 		return
@@ -73,6 +86,7 @@ func (s Server) updateUserInfo(c *gin.Context) {
 	if err != nil {
 		s.Logger.Error(errInvalidUserID)
 		c.JSON(http.StatusBadRequest, errInvalidUserID.Error())
+		return
 	}
 
 	if userInfo.Key == "phone" {
@@ -125,4 +139,27 @@ func (s Server) deleteUserInfoByID(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, "User info Deleted successfully")
+}
+
+func (s Server) userInfoByGovIDResp(str string) (bool, error) {
+	var exists bool = true
+	resp, _ := s.Client.GetUserInfoByGovID(str)
+	fmt.Println(resp)
+	// if resp.GovID != "" {
+	// 	fmt.Println(resp.GovID, "))))))))))))")
+	// 	fmt.Println(str, "1211111")
+	// 	exists = false
+	// 	return exists, errInvaildGovID
+	// }
+	if resp.GovID == str {
+		fmt.Println(resp.GovID, "))))))))))))")
+		fmt.Println(str, "1211111")
+		exists = false
+		return exists, errInvaildGovID
+	}
+
+	if resp.GovID != str {
+		return exists, nil
+	}
+	return exists, nil
 }

@@ -15,6 +15,7 @@ import (
 
 func validateID(str string) (primitive.ObjectID, error) {
 	ObjectID, err := strToPrimitiveObjID(str)
+	fmt.Println(ObjectID)
 	return ObjectID, err
 }
 
@@ -199,7 +200,6 @@ func validateBetUID(str string, resp []UserBetsInfo) (primitive.ObjectID, error)
 }
 
 func validatePhoneNumberString(phone string) error {
-
 	pattern := `^[0-9]{10}$`
 
 	regex := regexp.MustCompile(pattern)
@@ -214,7 +214,6 @@ func validatePhoneNumberString(phone string) error {
 
 func validatePhoneNumberInt(phone int64) error {
 	phoneString := strconv.FormatInt(phone, 10)
-
 	if err := validatePhoneNumberString(phoneString); err != nil {
 		return err
 	}
@@ -235,3 +234,11 @@ func stringToDateStruct(str string) Date {
 
 	return eventDateInfo
 }
+
+// func validateGovID(str string) error {
+// 	var s Server
+// 	if err := s.userInfoByGovIDResp(str); err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
