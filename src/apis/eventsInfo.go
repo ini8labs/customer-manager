@@ -47,6 +47,11 @@ func (s Server) getAllEvents(c *gin.Context) {
 
 func (s Server) getEventInfoByDate(c *gin.Context) {
 	date := c.Query("date")
+	if date == "" {
+		s.Logger.Error(errInvalidDate)
+		c.JSON(http.StatusBadRequest, errInvalidDate.Error())
+		return
+	}
 
 	eventDateInfo := stringToDateStruct(date)
 
@@ -79,7 +84,7 @@ func (s Server) eventsAvailable() ([]EventsInfo, error) {
 
 	startDate := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 
-	endDate := time.Now().AddDate(1, 0, 0).Format("2006-01-02")
+	endDate := time.Now().AddDate(3, 0, 0).Format("2006-01-02")
 
 	eventStartDateInfo := stringToDateStruct(startDate)
 	eventEndDateInfo := stringToDateStruct(endDate)
@@ -91,4 +96,24 @@ func (s Server) eventsAvailable() ([]EventsInfo, error) {
 
 	result := initializeEventInfo(resp)
 	return result, nil
+}
+
+func (s Server) eventsAvailableForBets(c *gin.Context) {
+
+	startDate := time.Now().AddDate(0, 0, 1).Format("2006-01-02")
+
+	endDate := time.Now().AddDate(1, 0, 0).Format("2006-01-02")
+
+	eventStartDateInfo := stringToDateStruct(startDate)
+	eventEndDateInfo := stringToDateStruct(endDate)
+
+	resp, err := s.Client.GetEventByDateRange(convertTimeToPrimitive(eventStartDateInfo), convertTimeToPrimitive(eventEndDateInfo))
+	if err != nil {
+		s.Logger.Error(err)
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	result := initializeEventInfo(resp)
+	c.JSON(http.StatusOK, result)
 }

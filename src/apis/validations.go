@@ -129,9 +129,12 @@ func validateEventType(s string) error {
 // 	}
 // }
 
-func requiredBetsByEventType(resp []lsdb.EventParticipantInfo) {
+func requiredBetsByEventType(resp []lsdb.EventParticipantInfo, userID string) {
 	for i, _ := range resp {
 		var temp UserBetsInfoByEvent
+		if userID != primitiveToString(resp[i].UserID) {
+			continue
+		}
 		temp.Amount = resp[i].Amount
 		temp.BetNumbers = resp[i].BetNumbers
 		respSlice = append(respSlice, temp)

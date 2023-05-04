@@ -75,14 +75,21 @@ const docTemplate = `{
                 }
             }
         },
-        "/bet/history/{id}": {
+        "/bet/history": {
             "get": {
                 "tags": ["Lottery APIs"],
                 "parameters": [
                     {
-                        "description": "enter a valid EventUID",
-                        "name": "id",
-                        "in": "path",
+                        "description": "enter a valid UserID",
+                        "name": "userid",
+                        "in": "query",
+                        "required": true,
+                        "type": "string",
+                    },
+                    {
+                        "description": "enter a valid Event type",
+                        "name": "type",
+                        "in": "query",
                         "required": true,
                         "type": "string",
                     }
@@ -184,6 +191,21 @@ const docTemplate = `{
                 }
             }
         },
+        "/event/bet": {
+            "get": {
+                "tags": ["Events APIs"],
+                "responses": {
+                    "200": {
+                        "description": "Event information retrieved successfully",
+                        "schema": {
+                            "type": "string",
+                            "example": "Event information retrieved successfully"
+                        }
+                    }
+                }
+            }
+        }
+        ,
         "/user": {
             "post": {
                 "tags": ["User Information APIs"],

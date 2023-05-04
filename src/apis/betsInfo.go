@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"fmt"
 	"net/http"
 
 	//"strings"
@@ -66,6 +67,7 @@ func (s Server) placeBets(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
+	fmt.Println(resp)
 
 	eventUIDValidated, err := validateEventID(NewBetsFomat.EventUID, resp)
 	if err != nil {
@@ -172,7 +174,8 @@ func (s Server) deleteBets(c *gin.Context) {
 }
 
 func (s Server) betsHistoryByEventType(c *gin.Context) {
-	eventType := c.Param("type")
+	eventType := c.Query("type")
+	userID := c.Query("userid")
 
 	if err := validateEventType(eventType); err != nil {
 		s.Logger.Error(err)
@@ -197,8 +200,14 @@ func (s Server) betsHistoryByEventType(c *gin.Context) {
 			return
 		}
 
-		requiredBetsByEventType(resp2)
+		requiredBetsByEventType(resp2, userID)
 
+	}
+
+	if len(respSlice) < 1 {
+		s.Logger.Error(errNoRecords)
+		c.JSON(http.StatusNotFound, errNoRecords.Error())
+		return
 	}
 
 	// getParticipantsInfoByEventIDLoop(resp1)
@@ -208,7 +217,7 @@ func (s Server) betsHistoryByEventType(c *gin.Context) {
 }
 
 func (s Server) userBets(c *gin.Context) {
-	userID := c.Param("id")
+	userID := c.Param("userid")
 
 	userIDConv, err := validateID(userID)
 	if err != nil {
