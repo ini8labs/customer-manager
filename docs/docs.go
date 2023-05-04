@@ -192,7 +192,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/even/available": {
+        "/event/available": {
             "get": {
                 "tags": ["Events APIs"],
                 "responses": {

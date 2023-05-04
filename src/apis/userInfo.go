@@ -89,16 +89,13 @@ func (s Server) updateUserInfo(c *gin.Context) {
 		return
 	}
 
-	if userInfo.Key == "phone" {
-		if err := validatePhoneNumberString(userInfo.Value); err != nil {
-			s.Logger.Error(err)
-			c.JSON(http.StatusBadRequest, err.Error())
-			return
-		}
+	if err := validateKeyValue(userInfo.Key, userInfo.Value); err != nil {
+		s.Logger.Error(err)
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
 	}
 
-	err1 := s.Client.UpdateUserInfo(userIDConv, userInfo.Key, userInfo.Value)
-	if err1 != nil {
+	if err1 := s.Client.UpdateUserInfo(userIDConv, userInfo.Key, userInfo.Value); err1 != nil {
 		s.Logger.Error("internal server error")
 		c.JSON(http.StatusBadRequest, "something went wrong with the server")
 		return

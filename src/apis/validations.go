@@ -243,6 +243,42 @@ func validateDate(str string) error {
 	return nil
 }
 
+func validateName(str string) error {
+	matched, _ := regexp.MatchString(`^[A-Za-z]+(?:\s+[A-Za-z]+)*$`, str)
+	if !matched {
+		return errInvalidName
+	}
+	return nil
+}
+
+func validateKeyValue(key string, value string) error {
+	allowedKeys := [3]string{"name", "phone", "gov_id"}
+	found := false
+
+	for _, item := range allowedKeys {
+		if key == item {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return errInvalidKey
+	}
+
+	if key == "name" {
+		if err := validateName(value); err != nil {
+			return err
+		}
+	}
+	if key == "phone" {
+		if err := validatePhoneNumberString(value); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func stringToDateStruct(str string) Date {
 	eventDate := strings.Split(str, "-")
 	intYear, _ := strconv.Atoi(eventDate[0])
