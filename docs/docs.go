@@ -92,6 +92,7 @@ const docTemplate = `{
                         "in": "query",
                         "required": true,
                         "type": "string",
+                        "enum": ["MS", "LT", "MW", "FT", "FB", "NW"]
                     }
                 ],
                 "responses": {
@@ -165,19 +166,19 @@ const docTemplate = `{
                 }
             }
         },
-        "/event/info":{
+        "/event/{date}":{
             "get": {
                 "tags": ["Events APIs"],
                 "parameters": [
                     {
-                        "description": "enter a date",
+                        "description": "enter a valid date in YYYY-MM-DD format",
                         "name": "date",
-                        "in": "query",
+                        "in": "path",
                         "required": true,
                         "schema": {
                             "type": "string",
-                            "example" : "2023-05-02"
-                        }
+                            "example": "2023-05-05"
+                          }
                     }
                 ],
                 "responses": {
@@ -191,7 +192,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/event/bet": {
+        "/even/available": {
             "get": {
                 "tags": ["Events APIs"],
                 "responses": {

@@ -153,7 +153,7 @@ func (s Server) updateBets(c *gin.Context) {
 }
 
 func (s Server) deleteBets(c *gin.Context) {
-	betUID := c.Param("id")
+	betUID := c.Param("betuid")
 	userID := c.Query("userid")
 
 	resp, _ := s.userBetsResp(userID)

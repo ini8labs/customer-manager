@@ -3,6 +3,7 @@ package apis
 import (
 	// "errors"
 
+	"fmt"
 	"net/http"
 	"time"
 
@@ -46,10 +47,11 @@ func (s Server) getAllEvents(c *gin.Context) {
 }
 
 func (s Server) getEventInfoByDate(c *gin.Context) {
-	date := c.Query("date")
-	if date == "" {
-		s.Logger.Error(errInvalidDate)
-		c.JSON(http.StatusBadRequest, errInvalidDate.Error())
+	date := c.Param("date")
+	fmt.Println(date)
+	if err := validateDate(date); err != nil {
+		s.Logger.Error(err)
+		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
 

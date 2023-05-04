@@ -223,6 +223,26 @@ func validatePhoneNumberInt(phone int64) error {
 	return nil
 }
 
+func validateDate(str string) error {
+	matched, _ := regexp.MatchString(`^\d{4}-\d{2}-\d{2}$`, str)
+	if !matched {
+		return errInvalidDateFormat
+	}
+
+	layout := "2006-01-02" // date layout for YYYY-MM-DD format
+
+	date, err := time.Parse(layout, str)
+	if err != nil {
+		return errInvalidDate
+	}
+
+	if date.Format(layout) != str {
+		return errInvalidDate
+	}
+
+	return nil
+}
+
 func stringToDateStruct(str string) Date {
 	eventDate := strings.Split(str, "-")
 	intYear, _ := strconv.Atoi(eventDate[0])
