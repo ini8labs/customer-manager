@@ -234,6 +234,12 @@ func (s Server) userBets(c *gin.Context) {
 		return
 	}
 
+	if len(resp) < 1 {
+		s.Logger.Error(errInvalidUserID)
+		c.JSON(http.StatusNotFound, errInvalidUserID.Error())
+		return
+	}
+
 	respConv = requiredInfoUserBets(resp)
 	c.JSON(http.StatusOK, respConv)
 }

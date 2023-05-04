@@ -122,8 +122,6 @@ func (s Server) getUserInfoByID(c *gin.Context) {
 
 	respUserInfo = requiredUserInfo(resp)
 	c.JSON(http.StatusOK, respUserInfo)
-
-	fmt.Println(respUserInfo)
 }
 
 func (s Server) deleteUserInfoByID(c *gin.Context) {

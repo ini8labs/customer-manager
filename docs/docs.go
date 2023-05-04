@@ -152,7 +152,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/event": {
+        "/event/all": {
             "get": {
                 "tags": ["Events APIs"],
                 "responses": {
