@@ -47,7 +47,7 @@ func (s Server) getAllEvents(c *gin.Context) {
 }
 
 func (s Server) getEventInfoByDate(c *gin.Context) {
-	date := c.Param("date")
+	date := c.Query("date")
 	fmt.Println(date)
 	if err := validateDate(date); err != nil {
 		s.Logger.Error(err)
@@ -118,4 +118,12 @@ func (s Server) eventsAvailableForBets(c *gin.Context) {
 
 	result := initializeEventInfo(resp)
 	c.JSON(http.StatusOK, result)
+}
+
+func (s Server) getEvents(c *gin.Context) {
+	if c.Query("date") != "" {
+		s.getEventInfoByDate(c)
+	} else {
+		s.getAllEvents(c)
+	}
 }

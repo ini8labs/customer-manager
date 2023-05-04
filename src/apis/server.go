@@ -60,8 +60,9 @@ func NewServer(server Server) error {
 	r.POST("/api/v1/user", server.newUserInfo)
 	r.PUT("/api/v1/user", server.updateUserInfo)
 	r.DELETE("/api/v1/user/:id", server.deleteUserInfoByID)
-	r.GET("/api/v1/event/all", server.getAllEvents)
-	r.GET("/api/v1/event/:date", server.getEventInfoByDate)
+	// r.GET("/api/v1/event", server.getAllEvents)
+	// r.GET("/api/v1/event", server.getEventInfoByDate)
+	r.GET("/api/v1/event", server.getEvents)
 	r.GET("/api/v1/event/available", server.eventsAvailableForBets)
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

@@ -152,29 +152,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/event/all": {
-            "get": {
-                "tags": ["Events APIs"],
-                "responses": {
-                    "200": {
-                        "description": "Events retrieved",
-                        "schema": {
-                            "type": "string",
-                            "example": "Events retrieved"
-                        }
-                    }
-                }
-            }
-        },
-        "/event/{date}":{
+        "/event": {
             "get": {
                 "tags": ["Events APIs"],
                 "parameters": [
                     {
                         "description": "enter a valid date in YYYY-MM-DD format",
                         "name": "date",
-                        "in": "path",
-                        "required": true,
+                        "in": "query",
                         "schema": {
                             "type": "string",
                             "example": "2023-05-05"
