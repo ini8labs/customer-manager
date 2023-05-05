@@ -35,6 +35,7 @@ var (
 	errInvalidDate        error = errors.New("invalid date")
 	errInvaildGovID       error = errors.New("invalid government ID")
 	errNoRecords          error = errors.New("no bets placed in this event type")
+	errEmptyResp          error = errors.New("no records found")
 	errInvalidName        error = errors.New("not a valid name")
 	errInvalidKey         error = errors.New("this key is not allowed")
 )

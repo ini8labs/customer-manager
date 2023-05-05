@@ -8,20 +8,19 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ini8labs/lsdb"
-
 	// "github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	// "go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type EventParticipantInfo struct {
-	BetUID     primitive.ObjectID `bson:"_id,omitempty"`
-	UserID     primitive.ObjectID `bson:"user_id,omitempty"`
-	BetNumbers []int              `bson:"bet_numbers,omitempty"`
-	Amount     int                `bson:"amount,omitempty"`
-}
+// type EventParticipantInfo struct {
+// 	BetUID     string `bson:"bet_id,omitempty"`
+// 	UserID     string `bson:"user_id,omitempty"`
+// 	BetNumbers []int              `bson:"bet_numbers,omitempty"`
+// 	Amount     int                `bson:"amount,omitempty"`
+// }
 
 type UserBetsInfo struct {
-	BetUID     string `bson:"_id,omitempty"`
+	BetUID     string `bson:"bet_id,omitempty"`
 	BetNumbers []int  `bson:"bet_numbers,omitempty"`
 	Amount     int    `bson:"amount,omitempty"`
 }
@@ -77,7 +76,11 @@ func (s Server) placeBets(c *gin.Context) {
 	}
 
 	amountValidated, err := validateAmount(NewBetsFomat.Amount)
-	errHandle(err)
+	if err != nil {
+		s.Logger.Error(err)
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
 
 	betNumbersvalidated, err := validateBetnumbers(NewBetsFomat.BetNumbers)
 	if err != nil {
@@ -118,7 +121,7 @@ func (s Server) updateBets(c *gin.Context) {
 		return
 	}
 
-	resp, err := s.userBetsResp(userID)
+	resp, _ := s.userBetsResp(userID)
 	betUIDValidated, err := validateBetUID(userBetsInfo.BetUID, resp)
 	if err != nil {
 		s.Logger.Error(err)
@@ -191,7 +194,6 @@ func (s Server) betsHistoryByEventType(c *gin.Context) {
 	}
 
 	for i, _ := range resp1 {
-
 		EventUID := resp1[i].EventUID
 		resp2, err := s.Client.GetParticipantsInfoByEventID(EventUID)
 		if err != nil {
@@ -201,19 +203,16 @@ func (s Server) betsHistoryByEventType(c *gin.Context) {
 		}
 
 		requiredBetsByEventType(resp2, userID)
-
 	}
 
-	if len(respSlice) < 1 {
+	if respSlice == nil {
 		s.Logger.Error(errNoRecords)
 		c.JSON(http.StatusNotFound, errNoRecords.Error())
 		return
 	}
 
-	// getParticipantsInfoByEventIDLoop(resp1)
 	c.JSON(http.StatusOK, respSlice)
 	respSlice = []UserBetsInfoByEvent{}
-
 }
 
 func (s Server) userBets(c *gin.Context) {
@@ -227,16 +226,15 @@ func (s Server) userBets(c *gin.Context) {
 	}
 
 	resp, err := s.Client.GetUserBets(userIDConv)
-	s.Logger.Errorln(resp)
 	if err != nil {
 		s.Logger.Error(err.Error())
-		c.JSON(http.StatusBadRequest, errInvalidUserID)
+		c.JSON(http.StatusNotFound, errInvalidUserID.Error())
 		return
 	}
 
-	if len(resp) < 1 {
-		s.Logger.Error(errInvalidUserID)
-		c.JSON(http.StatusNotFound, errInvalidUserID.Error())
+	if resp == nil {
+		s.Logger.Error(errEmptyResp)
+		c.JSON(http.StatusNotFound, errEmptyResp.Error())
 		return
 	}
 
@@ -257,14 +255,12 @@ func (s Server) userBetsResp(str string) ([]UserBetsInfo, error) {
 	return respConv, nil
 }
 
-func errHandle(err error) {
-	var s Server
-	var c *gin.Context
-	if err != nil {
-		s.Logger.Error(err.Error())
-		c.JSON(http.StatusBadRequest, err.Error())
-		return
-	}
-}
-
-// /user/{userid}/bets
+// func errHandle(err error) {
+// 	var s Server
+// 	var c *gin.Context
+// 	if err != nil {
+// 		s.Logger.Error(err.Error())
+// 		c.JSON(http.StatusBadRequest, err.Error())
+// 		return
+// 	}
+// }
