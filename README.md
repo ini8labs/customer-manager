@@ -91,7 +91,7 @@ Here are a few examples to demonstrate how to use the Customer-manager APIs:
 
 ![POST-bet](./Images/POST-bet.JPG)
 
-3.Place a new bet.
+3.Update user details.
 
 ![PUT-user](./Images/PUT-user.JPG)
 
@@ -101,4 +101,4 @@ Here are a few examples to demonstrate how to use the Customer-manager APIs:
 
 ## Error Handling
 
-When an error occurs, the Lottery APIs return appropriate HTTP status codes along with error messages in the response body. Make sure to handle these errors gracefully in your application.
+When an error occurs, the Customer-manager APIs return appropriate HTTP status codes along with error messages in the response body. Make sure to handle these errors gracefully in your application.
