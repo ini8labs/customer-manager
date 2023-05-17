@@ -46,7 +46,11 @@ func (s Server) newUserInfo(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
-	userInfo.Phone = newUserInfoFormat.Phone
+	// userInfo.Phone = newUserInfoFormat.Phone
+	// ============================================
+
+	userInfo.Phone, _ = cookieStringtoInt64(c)
+	// ========================================================
 	var validate bool = true
 	validate, err := s.userInfoByGovIDResp(newUserInfoFormat.GovID)
 	// if err := s.userInfoByGovIDResp(newUserInfoFormat.GovID); err != nil {

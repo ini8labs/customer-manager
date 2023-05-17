@@ -1,8 +1,9 @@
 package apis
 
 import (
-	docs "customer-manager/docs"
 	"errors"
+
+	docs "github.com/ini8labs/customer-manager/docs"
 
 	//"net/http"
 	//"strconv"
@@ -25,12 +26,14 @@ var (
 	errInvalidAmount      error = errors.New("invalid amount")
 	errNumberNotAllowed   error = errors.New("bet numbers should be between 1 and 90")
 	errIncorrectPhoneNo   error = errors.New("phone number is entered incorrectly")
+	errInvalidOTP         error = errors.New("invalid OTP")
 	errInvalidEventID     error = errors.New("event ID incorrect")
 	errInvalidUserID      error = errors.New("invalid user ID")
 	errInvalidBetUID      error = errors.New("Bet UID is incorrect")
 	errInvalidID          error = errors.New("id is incorrect")
 	errInvalidPhoneNum    error = errors.New("invalid phone number")
 	errIncorrectEventType error = errors.New("invalid event type")
+	errBadRequest         error = errors.New("bad request")
 	errInvalidDateFormat  error = errors.New("invalid date format")
 	errInvalidDate        error = errors.New("invalid date")
 	errInvaildGovID       error = errors.New("invalid government ID")

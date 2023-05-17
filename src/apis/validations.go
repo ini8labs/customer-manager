@@ -9,7 +9,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/ini8labs/lsdb"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -168,6 +170,17 @@ func primitiveToString(p primitive.ObjectID) string {
 	return p.Hex()
 }
 
+// func initializeEventInfoSingle (amountValidated, eventUIDValidated, userIDValidated, eventParticipantInfo) {
+// 	eventParticipantInfo := lsdb.EventParticipantInfo{
+// 		EventUID: eventUIDValidated,
+// 		ParticipantInfo: lsdb.ParticipantInfo{
+// 			UserID:     userIDValidated,
+// 			BetNumbers: betNumbersvalidated,
+// 			Amount:     amountValidated,
+// 		},
+// 	}
+// }
+
 func initializeEventInfo(resp []lsdb.LotteryEventInfo) []EventsInfo {
 	var arr []EventsInfo
 
@@ -292,6 +305,40 @@ func stringToDateStruct(str string) Date {
 	}
 
 	return eventDateInfo
+}
+
+func validateOTP(otp string) error {
+	otpPattern := regexp.MustCompile(`^\d{6}$`)
+	if otpPattern.MatchString(otp) {
+		return nil
+	}
+	return errInvalidOTP
+}
+
+func validatePhoneNumber(phoneNumber string) error {
+	phonePattern := regexp.MustCompile(`^\+91\d{10}$`)
+
+	if phonePattern.MatchString(phoneNumber) {
+		return nil
+	}
+	return errInvalidPhoneNum
+}
+
+func cookieStringtoInt64(c *gin.Context) (int64, error) {
+	phone, err := c.Cookie("PhoneNumber")
+	if err != nil {
+		logrus.Errorln("Not able to get phone from cookie")
+		return 0, err
+	}
+
+	regex := regexp.MustCompile(`\D`)
+	cleanedString := regex.ReplaceAllString(phone, "")
+
+	result, err := strconv.ParseInt(cleanedString, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return result, nil
 }
 
 // func validateGovID(str string) error {
