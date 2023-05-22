@@ -1,23 +1,26 @@
 package apis
 
 import (
+	"encoding/json"
 	"fmt"
+
 	"net/http"
+	"os"
+	"strconv"
 
 	//"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/ini8labs/lsdb"
+	"github.com/joho/godotenv"
+	"github.com/twilio/twilio-go"
+	twilioApi "github.com/twilio/twilio-go/rest/api/v2010"
+
 	// "github.com/sirupsen/logrus"
 	// "go.mongodb.org/mongo-driver/bson/primitive"
-)
 
-// type EventParticipantInfo struct {
-// 	BetUID     string `bson:"bet_id,omitempty"`
-// 	UserID     string `bson:"user_id,omitempty"`
-// 	BetNumbers []int              `bson:"bet_numbers,omitempty"`
-// 	Amount     int                `bson:"amount,omitempty"`
-// }
+	//"github.com/ini8labs/sns/src/apis"
+	"github.com/ini8labs/lsdb"
+)
 
 type UserBetsInfo struct {
 	BetUID     string `bson:"bet_id,omitempty"`
@@ -109,6 +112,44 @@ func (s Server) placeBets(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, "Bets Placed Successfully")
+
+	var userInfo *lsdb.UserInfo
+	userInfo, _ = s.Client.GetUserInfoByID(eventParticipantInfo.UserID)
+	tempFrom := "+12707477263"
+	tempName := userInfo.Name
+	tempPhone := ("+91" + strconv.Itoa(int(userInfo.Phone)))
+	tempMessage := ("Dear" + " " + tempName + " " + "your bet was placed successfully.")
+	SMS(tempFrom, tempPhone, tempMessage)
+
+}
+
+var Client *twilio.RestClient
+
+func SMS(from, to, message string) {
+	if err := godotenv.Load(); err != nil {
+		panic(err.Error())
+	}
+
+	accountSid := os.Getenv("A_SID")
+	authToken := os.Getenv("AUTH_TOKEN")
+
+	twilioClient := twilio.NewRestClientWithParams(twilio.ClientParams{
+		Username: accountSid,
+		Password: authToken,
+	})
+
+	params := &twilioApi.CreateMessageParams{}
+	params.SetTo(to)
+	params.SetFrom(from)
+	params.SetBody(message)
+
+	resp, err := twilioClient.Api.CreateMessage(params)
+	if err != nil {
+		fmt.Println("Error sending SMS message: " + err.Error())
+	} else {
+		response, _ := json.Marshal(*resp)
+		fmt.Println("Response: " + string(response))
+	}
 }
 
 func (s Server) updateBets(c *gin.Context) {
